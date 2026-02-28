@@ -83,6 +83,7 @@ Configure roles and permissions in:
 ### Authentication
 
 Login is exclusive through **Google OAuth 2.0**.
+
 To test the API directly using `curl`, you must include a valid Google ID Token:
 
 ```bash
