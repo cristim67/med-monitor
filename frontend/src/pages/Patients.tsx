@@ -92,8 +92,6 @@ export default function Patients() {
             <tr style={{ background: 'rgba(255, 255, 255, 0.02)', borderBottom: '1px solid var(--card-border)' }}>
               <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>PATIENT</th>
               <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>CONTACT</th>
-              <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>GENDER</th>
-              <th style={{ padding: '16px 24px', textAlign: 'left', fontSize: '13px', color: 'var(--text-muted)', fontWeight: 600 }}>AGE</th>
               <th style={{ padding: '16px 24px', textAlign: 'right' }}></th>
             </tr>
           </thead>
@@ -110,16 +108,6 @@ export default function Patients() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Mail size={14} /> {p.User.Email}
                   </div>
-                </td>
-                <td style={{ padding: '16px 24px', fontSize: '14px' }}>
-                  {p.Gender && (
-                    <span style={{ padding: '4px 12px', borderRadius: '20px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)' }}>
-                      {p.Gender}
-                    </span>
-                  )}
-                </td>
-                <td style={{ padding: '16px 24px', fontSize: '14px' }}>
-                  {p.DateOfBirth ? new Date().getFullYear() - new Date(p.DateOfBirth).getFullYear() : 'N/A' }
                 </td>
                 <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                   <button className="btn" style={{ padding: '8px 16px' }} onClick={() => viewPatientDetails(p)}>

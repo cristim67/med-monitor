@@ -19,6 +19,8 @@ export default function Login() {
         const res = await api.get('/api/v1/profile');
         if (res.status === 200) {
           localStorage.setItem('user_role', res.data.Role);
+          localStorage.setItem('user_name', res.data.Name);
+          localStorage.setItem('user_picture', res.data.Picture);
           navigate('/');
         }
       }

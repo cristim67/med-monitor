@@ -43,64 +43,33 @@ func main() {
 		log.Fatalf("Failed to load policies: %v", err)
 	}
 
-	// Seed initial policies if DB is empty
-	allPolicies, _ := enforcer.GetPolicy()
-	if len(allPolicies) == 0 {
-		log.Println("Seeding initial Casbin policies into DB...")
-		enforcer.AddPolicy("admin", "/api/v1/*", ".*")
-		enforcer.AddPolicy("admin", "/api/v1/users", "(GET)|(PUT)")
-		enforcer.AddPolicy("admin", "/api/v1/users/:id/role", "(PUT)")
+	// Seed initial policies if missing
+	hasDoctorPolicy, _ := enforcer.HasPolicy(string(models.RoleDoctor), "/api/v1/profile", "(GET)")
+	if !hasDoctorPolicy {
+		log.Println("Seeding missing Doctor/Patient Casbin policies into DB...")
+		enforcer.AddPolicy(string(models.RoleAdmin), "/api/v1/*", ".*")
 
-		enforcer.AddPolicy("doctor", "/api/v1/profile", "(GET)")
-		enforcer.AddPolicy("doctor", "/api/v1/patients", "(GET)")
-		enforcer.AddPolicy("doctor", "/api/v1/patients/:id/history", "(GET)")
-		enforcer.AddPolicy("doctor", "/api/v1/appointments", "(GET)")
-		enforcer.AddPolicy("doctor", "/api/v1/appointments/:id/complete", "(PUT)")
-		enforcer.AddPolicy("doctor", "/api/v1/appointments/:id/cancel", "(PUT)")
+		enforcer.AddPolicy(string(models.RoleDoctor), "/api/v1/profile", "(GET)")
+		enforcer.AddPolicy(string(models.RoleDoctor), "/api/v1/patients", "(GET)")
+		enforcer.AddPolicy(string(models.RoleDoctor), "/api/v1/patients/:id/history", "(GET)")
+		enforcer.AddPolicy(string(models.RoleDoctor), "/api/v1/appointments", "(GET)|(POST)")
+		enforcer.AddPolicy(string(models.RoleDoctor), "/api/v1/appointments/:id/complete", "(PUT)")
+		enforcer.AddPolicy(string(models.RoleDoctor), "/api/v1/appointments/:id/cancel", "(PUT)")
+		enforcer.AddPolicy(string(models.RoleDoctor), "/api/v1/prescriptions", "(GET)")
+		enforcer.AddPolicy(string(models.RoleDoctor), "/api/v1/prescriptions/:id", "(PUT)")
 
-		enforcer.AddPolicy("patient", "/api/v1/profile", "(GET)")
-		enforcer.AddPolicy("patient", "/api/v1/appointments", "(GET)|(POST)")
-		enforcer.AddPolicy("patient", "/api/v1/appointments/:id/cancel", "(PUT)")
-		enforcer.AddPolicy("patient", "/api/v1/prescriptions", "(GET)")
-		enforcer.AddPolicy("patient", "/api/v1/doctors", "(GET)")
-		enforcer.AddPolicy("patient", "/api/v1/departments", "(GET)")
+		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/profile", "(GET)")
+		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/appointments", "(GET)|(POST)")
+		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/appointments/:id/cancel", "(PUT)")
+		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/prescriptions", "(GET)")
+		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/doctors", "(GET)")
+		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/departments", "(GET)")
 
 		enforcer.SavePolicy()
 	}
 
 	// 5. Setup Router
 	r := routes.SetupRouter(enforcer, userService, medicalService)
-
-	// -- DEV ONLY: Ensure specific user is Admin --
-	db.DB.Model(&models.User{}).Where("email = ?", "cristi@genez.io").Update("role", "admin")
-	// ---------------------------------------------
-
-	// -- DEV ONLY: Seed Departments and Doctors --
-	var count int64
-	db.DB.Model(&models.Department{}).Count(&count)
-	if count == 0 {
-		log.Println("Seeding departments...")
-		cardiology := models.Department{Name: "Cardiology", Description: "Heart and blood vessels"}
-		neurology := models.Department{Name: "Neurology", Description: "Nervous system"}
-		db.DB.Create(&cardiology)
-		db.DB.Create(&neurology)
-
-		// Create a mock doctor if one doesn't exist
-		var docCount int64
-		db.DB.Model(&models.Doctor{}).Count(&docCount)
-		if docCount == 0 {
-			// Find an admin or create a specific user for this
-			var admin models.User
-			if err := db.DB.Where("role = ?", "admin").First(&admin).Error; err == nil {
-				db.DB.Create(&models.Doctor{
-					ID:             admin.ID,
-					DepartmentID:   cardiology.ID,
-					Specialization: "Senior Cardiologist",
-				})
-			}
-		}
-	}
-	// ---------------------------------------------
 
 	// 6. Start server
 	log.Printf("Server executing on :%s", config.AppConfig.Port)

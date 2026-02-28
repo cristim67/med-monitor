@@ -95,12 +95,18 @@ func (h *MedicalHandler) GetMyAppointments(c *gin.Context) {
 	var appts []models.Appointment
 	var err error
 
-	if role == "admin" {
+	if role == string(models.RoleAdmin) {
 		appts, err = h.service.GetAllAppointments()
-	} else if role == "doctor" {
-		appts, err = h.service.GetDoctorAppointments(userID)
 	} else {
-		appts, err = h.service.GetPatientAppointments(userID)
+		// Get appointments where they are the doctor
+		if role == string(models.RoleDoctor) {
+			appts, err = h.service.GetDoctorAppointments(userID)
+		}
+		// Also get appointments where they are the patient
+		patientAppts, pErr := h.service.GetPatientAppointments(userID)
+		if pErr == nil {
+			appts = append(appts, patientAppts...)
+		}
 	}
 
 	if err != nil {

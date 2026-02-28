@@ -94,7 +94,7 @@ func (s *medicalService) BookAppointment(patientID, doctorID uint, date string) 
 		PatientID:       patientID,
 		DoctorID:        doctorID,
 		AppointmentDate: parsedDate,
-		Status:          "Scheduled",
+		Status:          models.StatusScheduled,
 	}
 
 	err = s.repo.CreateAppointment(appt)
@@ -106,7 +106,7 @@ func (s *medicalService) CancelAppointment(apptID uint) error {
 	if err != nil {
 		return err
 	}
-	appt.Status = "Cancelled"
+	appt.Status = models.StatusCancelled
 	return s.repo.UpdateAppointment(appt)
 }
 
@@ -132,7 +132,7 @@ func (s *medicalService) CompleteAppointment(apptID uint, diagnosis, notes strin
 		return err
 	}
 
-	appt.Status = "Completed"
+	appt.Status = models.StatusCompleted
 	if err := s.repo.UpdateAppointment(appt); err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func (s *medicalService) CompleteAppointment(apptID uint, diagnosis, notes strin
 
 	for _, m := range medications {
 		m.ConsultationID = cons.ID
-		m.Status = "Issued"
+		m.Status = models.StatusIssued
 		if err := s.repo.CreatePrescription(&m); err != nil {
 			return err
 		}
@@ -163,7 +163,7 @@ func (s *medicalService) GetPatientPrescriptions(patientID uint) ([]models.Presc
 
 func (s *medicalService) UpdatePrescriptionStatus(prescID uint, status string) error {
 	// Simplified update
-	presc := &models.Prescription{ID: prescID, Status: status}
+	presc := &models.Prescription{ID: prescID, Status: models.PrescriptionStatus(status)}
 	return s.repo.UpdatePrescription(presc)
 }
 

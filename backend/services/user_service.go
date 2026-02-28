@@ -34,13 +34,13 @@ func (s *userService) UpdateUserRole(id uint, role string) error {
 		return err
 	}
 
-	user.Role = role
+	user.Role = models.UserRole(role)
 	if err := s.repo.UpdateUser(user); err != nil {
 		return err
 	}
 
 	// Create specific profile if needed
-	if role == "doctor" {
+	if user.Role == models.RoleDoctor {
 		_, err := s.medRepo.GetDoctorByID(id)
 		if err != nil {
 			// Create doctor profile
@@ -50,7 +50,7 @@ func (s *userService) UpdateUserRole(id uint, role string) error {
 			}
 			return s.medRepo.CreateDoctor(doctor)
 		}
-	} else if role == "patient" {
+	} else if user.Role == models.RolePatient {
 		_, err := s.medRepo.GetPatientByID(id)
 		if err != nil {
 			patient := &models.Patient{
@@ -76,6 +76,10 @@ func (s *userService) GetOrCreateUserByClaims(claims *utils.GoogleClaims) (*mode
 			user.Name = claims.Name
 			updated = true
 		}
+		if user.GoogleID == "" && claims.GoogleID != "" {
+			user.GoogleID = claims.GoogleID
+			updated = true
+		}
 
 		if updated {
 			if err := s.repo.UpdateUser(user); err != nil {
@@ -89,21 +93,24 @@ func (s *userService) GetOrCreateUserByClaims(claims *utils.GoogleClaims) (*mode
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		// Create default admin for dev purposes (or patient as per actual business logic)
 		newUser := &models.User{
-			Email:   claims.Email,
-			Name:    claims.Name,
-			Picture: claims.Picture,
-			Role:    "admin", // First user is admin
+			Email:    claims.Email,
+			GoogleID: claims.GoogleID,
+			Name:     claims.Name,
+			Picture:  claims.Picture,
+			Role:     models.RoleAdmin, // First user is admin
 		}
 
 		if err := s.repo.CreateUser(newUser); err != nil {
 			return nil, err
 		}
 
-		patientDetails := &models.Patient{
-			ID: newUser.ID,
-		}
-		if err := s.repo.CreatePatient(patientDetails); err != nil {
-			return nil, err
+		if newUser.Role == models.RolePatient {
+			patientDetails := &models.Patient{
+				ID: newUser.ID,
+			}
+			if err := s.repo.CreatePatient(patientDetails); err != nil {
+				return nil, err
+			}
 		}
 
 		return newUser, nil

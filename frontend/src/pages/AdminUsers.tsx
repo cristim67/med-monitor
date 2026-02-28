@@ -50,28 +50,28 @@ export default function AdminUsers() {
   );
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', animation: 'fadeIn 0.5s ease' }}>
+    <div style={{ maxWidth: 'calc(1200 / 16 * 1rem)', margin: '0 auto', animation: 'fadeIn 0.5s ease' }}>
       <div className="page-header">
-        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: 'calc(12 / 16 * 1rem)' }}>
           <Shield color="var(--primary)" size={32} />
           User Management
         </h1>
-        <p className="page-subtitle">Control access levels and assign medical roles to system users.</p>
+        <p className="page-subtitle" style={{ marginBottom: 'calc(16 / 16 * 1rem)', marginTop: 'calc(8 / 16 * 1rem)' }}>Control access levels and assign medical roles to system users.</p>
       </div>
 
-      <div className="glass-panel" style={{ padding: '24px', marginBottom: '32px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: 'calc(24 / 16 * 1rem)', marginBottom: 'calc(32 / 16 * 1rem)', display: 'flex', gap: 'calc(16 / 16 * 1rem)', alignItems: 'center' }}>
         <div style={{ position: 'relative', flex: 1 }}>
-          <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} size={18} />
+          <Search style={{ position: 'absolute', left: 'calc(12 / 16 * 1rem)', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} size={18} />
           <input 
             type="text" 
             placeholder="Search by name or email..." 
             className="form-control"
-            style={{ paddingLeft: '40px' }}
+            style={{ paddingLeft: 'calc(40 / 16 * 1rem)' }}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500 }}>
+        <div style={{ fontSize: 'calc(14 / 16 * 1rem)', color: 'var(--text-muted)', fontWeight: 500 }}>
           {filteredUsers.length} Users Found
         </div>
       </div>
@@ -80,51 +80,44 @@ export default function AdminUsers() {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--card-border)', background: 'rgba(255,255,255,0.02)' }}>
-              <th style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>User</th>
-              <th style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role</th>
-              <th style={{ padding: '16px 24px', fontSize: '13px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
+              <th style={{ padding: '16px 24px', fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>User</th>
+              <th style={{ padding: '16px 24px', fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role</th>
+              <th style={{ padding: '16px 24px', fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={3} style={{ padding: '60px', textAlign: 'center' }}>Loading users...</td></tr>
+              <tr><td colSpan={3} style={{ padding: 'calc(60 / 16 * 1rem)', textAlign: 'center' }}>Loading users...</td></tr>
             ) : filteredUsers.length === 0 ? (
-              <tr><td colSpan={3} style={{ padding: '60px', textAlign: 'center' }}>No users found matching your search.</td></tr>
+              <tr><td colSpan={3} style={{ padding: 'calc(60 / 16 * 1rem)', textAlign: 'center' }}>No users found matching your search.</td></tr>
             ) : filteredUsers.map(user => (
               <tr key={user.ID} style={{ borderBottom: '1px solid var(--card-border)', transition: 'background 0.2s' }} className="table-row-hover">
                 <td style={{ padding: '20px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'calc(16 / 16 * 1rem)' }}>
                     <img 
                       src={user.Picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.Name)}&background=3b82f6&color=fff`} 
                       alt="" 
-                      style={{ width: '40px', height: '40px', borderRadius: '10px', objectFit: 'cover' }}
+                      style={{ width: 'calc(40 / 16 * 1rem)', height: 'calc(40 / 16 * 1rem)', borderRadius: 'calc(10 / 16 * 1rem)', objectFit: 'cover' }}
                       referrerPolicy="no-referrer"
                     />
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '15px' }}>{user.Name}</div>
-                      <div style={{ fontSize: '13px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <div style={{ fontWeight: 700, fontSize: 'calc(15 / 16 * 1rem)' }}>{user.Name}</div>
+                      <div style={{ fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 'calc(4 / 16 * 1rem)' }}>
                         <Mail size={12} /> {user.Email}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td style={{ padding: '20px 24px' }}>
-                  <span className={`status-badge ${user.Role}`} style={{ 
-                    padding: '6px 12px', 
-                    borderRadius: '8px',
-                    background: user.Role === 'admin' ? 'rgba(239, 68, 68, 0.1)' : (user.Role === 'doctor' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)'),
-                    color: user.Role === 'admin' ? '#ef4444' : (user.Role === 'doctor' ? '#3b82f6' : '#10b981'),
-                    fontWeight: 700,
-                    fontSize: '11px'
-                  }}>
+                  <span className={`status-badge ${user.Role}`}>
                     {user.Role}
                   </span>
                 </td>
                 <td style={{ padding: '20px 24px', textAlign: 'right' }}>
-                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                   <div style={{ display: 'flex', gap: 'calc(8 / 16 * 1rem)', justifyContent: 'flex-end' }}>
                       <select 
                         className="form-control" 
-                        style={{ width: 'auto', padding: '4px 8px', fontSize: '13px' }}
+                        style={{ width: 'auto', padding: '4px 8px', fontSize: 'calc(13 / 16 * 1rem)' }}
                         value={user.Role}
                         disabled={updating === user.ID}
                         onChange={(e) => updateUserRole(user.ID, e.target.value)}

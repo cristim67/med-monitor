@@ -10,9 +10,10 @@ import (
 )
 
 type GoogleClaims struct {
-	Email   string
-	Name    string
-	Picture string
+	Email    string
+	GoogleID string
+	Name     string
+	Picture  string
 }
 
 func ValidateAndExtractClaims(authHeader string) (*GoogleClaims, error) {
@@ -38,7 +39,8 @@ func ValidateAndExtractClaims(authHeader string) (*GoogleClaims, error) {
 	}
 
 	claims := &GoogleClaims{
-		Email: payload.Claims["email"].(string),
+		Email:    payload.Claims["email"].(string),
+		GoogleID: payload.Subject,
 	}
 
 	if name, ok := payload.Claims["name"].(string); ok {

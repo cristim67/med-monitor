@@ -91,7 +91,7 @@ func (r *medicalRepository) CreateDoctor(doctor *models.Doctor) error {
 
 func (r *medicalRepository) GetAllPatients() ([]models.Patient, error) {
 	var patients []models.Patient
-	err := r.db.Preload("User").Find(&patients).Error
+	err := r.db.Preload("User").Joins("JOIN users ON users.id = patients.id").Where("users.role = ?", "patient").Find(&patients).Error
 	return patients, err
 }
 

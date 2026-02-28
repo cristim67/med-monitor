@@ -18,7 +18,6 @@ func NewUserHandler(service services.UserService) *UserHandler {
 }
 
 func (h *UserHandler) GetProfile(c *gin.Context) {
-	// ... (rest remains similar)
 	id := c.GetUint("user_id")
 	email := c.GetString("user_email")
 	role := c.GetString("user_role")
@@ -28,7 +27,7 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, models.User{
 		ID:      id,
 		Email:   email,
-		Role:    role,
+		Role:    models.UserRole(role),
 		Name:    name,
 		Picture: picture,
 	})

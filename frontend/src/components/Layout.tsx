@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Calendar, Users, LogOut, Activity, Sun, Moon, Menu, X, ClipboardList, Shield } from 'lucide-react';
+import api from '../api/axios';
 import { jwtDecode } from 'jwt-decode';
 
 interface GoogleJwtPayload {
@@ -43,6 +44,40 @@ export default function Layout() {
 
   const userAvatar = picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=128`;
   
+  // Sync role with backend to prevent stale localStorage
+  useEffect(() => {
+    const syncRole = async () => {
+      try {
+        const res = await api.get('/api/v1/profile');
+        const latestRole = res.data.Role;
+        const latestName = res.data.Name;
+        const latestPicture = res.data.Picture;
+
+        let changed = false;
+        if (latestRole && latestRole !== role) {
+          localStorage.setItem('user_role', latestRole);
+          changed = true;
+        }
+        if (latestName && latestName !== localStorage.getItem('user_name')) {
+          localStorage.setItem('user_name', latestName);
+          changed = true;
+        }
+        if (latestPicture !== localStorage.getItem('user_picture')) {
+          localStorage.setItem('user_picture', latestPicture || '');
+          changed = true;
+        }
+
+        if (changed) {
+          console.log('Profile updated from sync');
+          window.location.reload(); 
+        }
+      } catch (err) {
+        console.error('Failed to sync profile', err);
+      }
+    };
+    if (token) syncRole();
+  }, [token, role]);
+
   // Debug profile info once
   useEffect(() => {
     console.log('User Profile:', { name, picture, role });
@@ -69,19 +104,15 @@ export default function Layout() {
         <div 
           className="sidebar-overlay" 
           onClick={() => setIsSidebarOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            zIndex: 95
-          }}
         />
       )}
 
       <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="brand">
-          <Activity className="brand-icon" />
-          <span>MedMonitor</span>
+          <div className="pulse-primary" style={{ width: '32px', height: '32px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--primary)' }}>
+            <Activity color="white" size={18} />
+          </div>
+          <span style={{ fontWeight: 900, letterSpacing: '-0.02em', fontSize: '18px' }}>MedMonitor</span>
           <button 
             className="theme-toggle" 
             onClick={() => setIsSidebarOpen(false)} 
@@ -91,55 +122,58 @@ export default function Layout() {
         </div>
 
         <nav className="nav-menu">
+          <div className="nav-section-label">General</div>
           <NavLink to="/" className={({isActive}: {isActive: boolean}) => `nav-link ${isActive ? 'active' : ''}`} end onClick={() => setIsSidebarOpen(false)}>
-            <LayoutDashboard size={20} />
-            Dashboard
+            <LayoutDashboard size={18} />
+            <span>Dashboard</span>
           </NavLink>
           
           <NavLink to="/appointments" className={({isActive}: {isActive: boolean}) => `nav-link ${isActive ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-            <Calendar size={20} />
-            Appointments
+            <Calendar size={18} />
+            <span>Appointments</span>
           </NavLink>
 
+          <div className="nav-section-label" style={{ marginTop: '20px' }}>Clinical</div>
           {(role === 'admin' || role === 'doctor') && (
             <NavLink to="/patients" className={({isActive}: {isActive: boolean}) => `nav-link ${isActive ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-              <Users size={20} />
-              Patients
-            </NavLink>
-          )}
-
-          {role === 'admin' && (
-            <NavLink to="/admin/users" className={({isActive}: {isActive: boolean}) => `nav-link ${isActive ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-              <Shield size={20} />
-              User Management
+              <Users size={18} />
+              <span>Patients</span>
             </NavLink>
           )}
 
           <NavLink to="/prescriptions" className={({isActive}: {isActive: boolean}) => `nav-link ${isActive ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
-            <ClipboardList size={20} />
-            Prescriptions
+            <ClipboardList size={18} />
+            <span>Prescriptions</span>
           </NavLink>
+
+          {role === 'admin' && (
+            <>
+              <div className="nav-section-label" style={{ marginTop: '20px' }}>Security</div>
+              <NavLink to="/admin/users" className={({isActive}: {isActive: boolean}) => `nav-link ${isActive ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}>
+                <Shield size={18} />
+                <span>User Management</span>
+              </NavLink>
+            </>
+          )}
         </nav>
 
-        <div className="sidebar-footer" style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <button className="theme-toggle" onClick={toggleTheme} style={{ width: '100%', justifyContent: 'flex-start', gap: '12px', padding: '12px 16px' }}>
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            <span style={{ fontSize: '14px', fontWeight: 500 }}>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-          </button>
-
+        <div className="sidebar-footer">
           <div className="user-profile">
-            <img 
-              src={userAvatar} 
-              alt="User Avatar" 
-              className="user-avatar" 
-              referrerPolicy="no-referrer"
-            />
+            <div style={{ position: 'relative' }}>
+              <img 
+                src={userAvatar} 
+                alt="User Avatar" 
+                className="user-avatar" 
+                referrerPolicy="no-referrer"
+              />
+              <div style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '12px', height: '12px', background: 'var(--success)', border: '2px solid var(--bg-surface)', borderRadius: '50%' }} />
+            </div>
             <div className="user-info">
               <div className="user-name">{name}</div>
-              <div className="user-role">{role}</div>
+              <div className="badge badge-primary" style={{ fontSize: '9px', padding: '2px 6px', marginTop: '2px', textTransform: 'uppercase' }}>{role}</div>
             </div>
-            <button onClick={handleLogout} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginLeft: 'auto' }}>
-              <LogOut size={20} />
+            <button onClick={handleLogout} className="logout-button" title="Logout">
+              <LogOut size={18} />
             </button>
           </div>
         </div>

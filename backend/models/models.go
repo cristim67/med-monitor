@@ -6,13 +6,36 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserRole string
+
+const (
+	RoleAdmin   UserRole = "admin"
+	RoleDoctor  UserRole = "doctor"
+	RolePatient UserRole = "patient"
+)
+
+type AppointmentStatus string
+
+const (
+	StatusScheduled AppointmentStatus = "Scheduled"
+	StatusCancelled AppointmentStatus = "Cancelled"
+	StatusCompleted AppointmentStatus = "Completed"
+)
+
+type PrescriptionStatus string
+
+const (
+	StatusIssued    PrescriptionStatus = "Issued"
+	StatusDispensed PrescriptionStatus = "Dispensed"
+)
+
 type User struct {
 	ID        uint   `gorm:"primaryKey"`
 	Email     string `gorm:"uniqueIndex;not null"`
 	GoogleID  string `gorm:"uniqueIndex"`
 	Name      string
 	Picture   string
-	Role      string // admin, doctor, patient
+	Role      UserRole // admin, doctor, patient
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
@@ -55,7 +78,7 @@ type Appointment struct {
 	DoctorID        uint
 	Doctor          Doctor `gorm:"foreignKey:DoctorID"`
 	AppointmentDate time.Time
-	Status          string // Scheduled, Cancelled, Completed
+	Status          AppointmentStatus // Scheduled, Cancelled, Completed
 	CreatedAt       time.Time
 	UpdatedAt       time.Time
 	DeletedAt       gorm.DeletedAt `gorm:"index"`
@@ -79,7 +102,7 @@ type Prescription struct {
 	Consultation   Consultation `gorm:"foreignKey:ConsultationID"`
 	Medication     string
 	Dosage         string
-	Status         string // Issued, Dispensed
+	Status         PrescriptionStatus // Issued, Dispensed
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	DeletedAt      gorm.DeletedAt `gorm:"index"`
