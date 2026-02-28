@@ -1,0 +1,15 @@
+name: med-monitor-frontend
+region: eu-central-1
+yamlVersion: 2
+frontend:
+    path: .
+    publish: dist
+    scripts:
+        deploy:
+            - npm install
+        build:
+            - npm run build
+        start:
+            - npm install
+            - npm run dev
+    subdomain: med-monitor-frontend

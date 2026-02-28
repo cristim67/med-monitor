@@ -1,73 +1,80 @@
-# React + TypeScript + Vite
+# 💎 Med-Monitor Frontend | Glassmorphism Clinical Interface
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend of Med-Monitor is a state-of-the-art Single Page Application (SPA) designed for high-density clinical data visualization and seamless user orchestration. Built with **React 19** and **TypeScript**, it features a premium, custom-engineered **Glassmorphism UI** system.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🎨 Visual Identity
 
-## React Compiler
+- **Glassmorphism System**: Custom CSS engine implementing translucent surfaces, vibrant mesh gradients, and strategic blurs.
+- **Dynamic Theming**: Seamless transition between sophisticated Dark Mode and high-contrast Light Mode.
+- **Responsive Nexus**: Fluid layouts optimized for both specialist desktops and portable clinical tablets.
+- **Lucide Iconography**: High-clarity vector icons for intuitive navigation.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🛠️ Technology Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Core**: [React 19](https://react.dev/) + [TypeScript 5](https://www.typescriptlang.org/)
+- **Build Engine**: [Vite 7](https://vitejs.dev/) (Sub-second HMR)
+- **Routing**: [React Router 7](https://reactrouter.com/)
+- **State & Data**: [Axios](https://axios-http.com/) with sophisticated Context-based interceptors.
+- **Identity**: [Google OAuth 2.0](https://developers.google.com/identity/gsi/web) for secure enterprise login.
+- **Styling**: Pure **Vanilla CSS** with CSS Variables (Custom Design System).
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🏗️ Architecture
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+The codebase is organized by functional domains:
+
+- **`/src/api`**: Centralized Axios instance with automatic JWT injection and 401 handling.
+- **`/src/components`**: Reusable design system components (Layout, Loaders, Modals).
+- **`/src/context`**: Global providers for Authentication and Theme synchronization.
+- **`/src/pages`**: Domain-specific views:
+  - `Dashboard`: Personalized clinical/overview timeline.
+  - `Appointments`: Smart scheduler with role-based logic.
+  - `Patients`: Electronic Medical Record (EMR) management.
+  - `Prescriptions`: Digital pharmacy directive tracking.
+  - `AdminUsers`: RBAC governance console.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Requirements
+
+- Node.js 20+
+- npm 10+
+
+### 2. Configuration
+
+Create a `.env` file in the root of this directory:
+
+```env
+VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+VITE_API_URL=http://localhost:8080
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 3. Installation
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+### 4. Run Development Server
+
+```bash
+npm run dev
+```
+
+---
+
+## 🔐 Authentication Flow
+
+1. **Google Login**: User authenticates with Google.
+2. **JWT Capture**: Token is verified by the backend.
+3. **Role Sync**: The UI dynamically updates its state and navigation paths based on the role assigned in the backend Database (synced via `/api/v1/profile`).
+
+---
+© 2026 Med-Monitor Systems

@@ -1,0 +1,5 @@
+name: med-monitor-backend
+region: eu-central-1
+yamlVersion: 2
+container:
+  path: ./Dockerfile

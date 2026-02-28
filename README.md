@@ -10,6 +10,15 @@ A high-performance, enterprise-grade medical monitoring system designed to bridg
 
 ---
 
+## 🌐 Live Deployment
+
+| Service | Public URL |
+| :--- | :--- |
+| **Frontend Nexus** | [https://med-monitor-frontend.app.genez.io](https://med-monitor-frontend.app.genez.io) |
+| **Backend Engine** | [https://1c95d8e6-7e30-45b8-83ac-1083bb8e503b.eu-central-1.cloud.genez.io/ping](https://1c95d8e6-7e30-45b8-83ac-1083bb8e503b.eu-central-1.cloud.genez.io/ping) |
+
+---
+
 ## 🌟 Key Features
 
 ### 👨‍⚕️ Specialist Dashboard
