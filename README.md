@@ -1,91 +1,92 @@
-# Med-Monitor
+# 🏥 Med-Monitor | Enterprise Medical Facility Orchestrator
 
-A complex web application for monitoring patients within a medical facility, encompassing scheduling, consultations, diagnostics, and treatment tracking.
+[![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?style=for-the-badge&logo=go)](https://go.dev/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Casbin](https://img.shields.io/badge/Casbin-RBAC-orange?style=for-the-badge)](https://casbin.org/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-## 🏗️ Structure
-
-- **frontend/**: React + TypeScript + Vite. Premium Dark-Mode Glassmorphism UI for Admin, Doctor, and Patient.
-- **backend/**: Go (Golang) + Gin application, modular architecture (Repositories, Services, Handlers).
-- **docs/**: Conceptual and functional modeling defining the system's actors and features.
-
-## 🛠️ Tech Stack
-
-- **Backend**: Go 1.22, Gin Gonic, Casbin (RBAC), GORM.
-- **Frontend**: React 18, Vite, TypeScript, Vanilla CSS (Premium UI), Axios with Interceptors.
-- **Database**: PostgreSQL (Production-ready, compatible with Neon/Cloud providers).
-- **Auth**: Google OAuth 2.0 (Identity validation on backend).
-- **Orchestration**: Docker Compose.
+A high-performance, enterprise-grade medical monitoring system designed to bridge the gap between patients and specialized clinical care. Featuring a state-of-the-art **Glassmorphism UI** and a robust **Go-engineered backend**, Med-Monitor handles the entire clinical lifecycle—from automated scheduling to digital prescription management.
 
 ---
 
-## 🚀 Getting Started
+## 🌟 Key Features
 
-### 1. Prerequisites
+### 👨‍⚕️ Specialist Dashboard
 
-- **Docker & Docker Compose**: Ensure the Docker daemon is running on your machine.
-- **Google Cloud Console**: Create a project and obtain a **Google Client ID**.
-- **PostgreSQL**: A running instance (e.g., [Neon.tech](https://neon.tech)) or any Postgres URI.
+- **Clinical Encounter Management**: Real-time processing of patient visits with diagnostic logging.
+- **Digital RX System**: Automated prescription issuance with dosage tracking and pharmacy-ready data.
+- **Patient EMR Access**: Full medical history visualization including past consultations and active medications.
 
-### 2. Configuration (`.env`)
+### 👤 Patient Experience
 
-#### **Backend** (`backend/.env`)
+- **Smart Slot Booking**: Interactive calendar component for selecting specialist availability windows.
+- **Personal Health Record**: Secure access to issued prescriptions and upcoming clinical appointments.
+- **Identity Sync**: Zero-friction onboarding via Google OAuth 2.0.
 
-Create a file at `backend/.env` with:
+### 🛡️ Administrative Control
 
-```env
-DATABASE_URL=your_postgresql_connection_string
-GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-ENVIRONMENT=production
-PORT=8080
-```
+- **RBAC Governance**: Granular permissions system powered by Casbin.
+- **Operational Unit Management**: Dynamic medical department creation and specialist assignment.
+- **Audit Ready**: Centralized user role management and clinical record oversight.
 
-#### **Frontend** (`frontend/.env`)
+---
 
-Create a file at `frontend/.env` with:
+## 🏗️ Technical Architecture
 
-```env
-VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-VITE_API_URL=http://localhost:8080
-```
+### 🚄 Backend (Go Engine)
 
-### 3. Running the System
+- **Gin Web Framework**: High-throughput RESTful API layer.
+- **Modular Design**: Clean separation between **Handlers**, **Services**, and **Repositories**.
+- **Data Integrity**: GORM-powered persistence with PostgreSQL, implementing strict `snake_case` JSON standardization.
+- **Security**: Stateless JWT verification with Google ID Token validation.
 
-Execute the following command in the root directory:
+### 💎 Frontend (React Nexus)
+
+- **Vite Ecosystem**: Optimized build pipeline for sub-second hot reloading.
+- **Glassmorphism UI**: Premium visual language built with pure CSS—no generic component libraries.
+- **Smart Interceptors**: Sophisticated Axios middleware for seamless auth token injection and 401 recovery.
+- **Dynamic Routing**: Role-restricted navigation paths for secure access control.
+
+---
+
+## 🚀 Deployment Guide
+
+### 📦 Containerized Setup (Recommended)
+
+Ensure Docker is installed, then run:
 
 ```bash
 docker-compose up --build
 ```
 
-*Note: The `version` attribute in docker-compose.yml is obsolete for recent Docker versions but kept for legacy support.*
+### ⚙️ Environment Configuration
 
-### 4. Database Migrations
+#### Backend (`backend/.env`)
 
-The backend uses `golang-migrate`. Migrations run automatically on startup.
+```env
+DATABASE_URL=postgres://user:pass@host:port/db
+GOOGLE_CLIENT_ID=your-google-client-id
+PORT=8080
+```
 
-- **Initial Schema**: Handled via `backend/migrations/000001_init_schema.up.sql`.
-- **Soft Delete**: All tables support soft deletion via GORM's `DeletedAt`.
+#### Frontend (`frontend/.env`)
+
+```env
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+VITE_API_URL=http://localhost:8080
+```
 
 ---
 
-## 🔐 Authorization & Access Control
+## 🔐 Security Framework (Casbin RBAC)
 
-The app uses **Casbin** for Role-Based Access Control (RBAC).
-Configure roles and permissions in:
+Access control is enforced at the middleware layer using a logic-based policy model (`backend/casbin/policy.csv`):
 
-- `backend/casbin/model.conf`: The permission model logic.
-- `backend/casbin/policy.csv`: Defined access rules for `admin`, `doctor`, and `patient`.
+| Role | Permissions |
+| :--- | :--- |
+| **Admin** | Full system orchestration (`*`) |
+| **Doctor** | Patient Records, Appointments (Process), Prescriptions (Issue) |
+| **Patient** | Personal Profile, Appointment Booking, Prescription View |
 
-### Accessing the App
-
-- **Frontend UI**: [http://localhost:5173](http://localhost:5173)
-- **Backend Health Check**: [http://localhost:8080/ping](http://localhost:8080/ping)
-
-### Authentication
-
-Login is exclusive through **Google OAuth 2.0**.
-
-To test the API directly using `curl`, you must include a valid Google ID Token:
-
-```bash
-curl -H "Authorization: Bearer <GOOGLE_ID_TOKEN>" http://localhost:8080/api/v1/patients
-```
+---

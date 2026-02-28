@@ -1,40 +1,106 @@
-# Conceptual and Functional Modeling
+# 🏛️ System Architecture & Design Specification
 
-## 1. Overview
+This document outlines the conceptual, functional, and technical framework of the **Med-Monitor** ecosystem.
 
-This project aims to create a complex web application for monitoring a patient within a medical facility, including modules for scheduling, consultation, diagnosis, and treatment, as well as a prescription issuance and tracking system in relation to pharmacies.
+---
 
-## 2. Functional Modeling
+## 1. 🎯 Executive Overview
 
-### 2.1 Actors
+Med-Monitor is a high-fidelity medical orchestration platform designed to streamline clinical operations. The system integrates patient scheduling, secure clinical encounters, diagnostic recording, and an end-to-end digital prescription lifecycle.
 
-- **Patient:** Schedules appointments, views consultation results, and prescriptions.
-- **Doctor:** Manages consultations, establishes diagnosis, prescribes medications, and monitors patients.
-- **Admin:** Manages the database of doctors, medical departments, and facilities.
-- **Pharmacist (Extension):** Dispenses prescriptions and verifies their validity.
+---
 
-### 2.2 Workflow
+## 2. 👥 Functional Modeling
 
-1. **Scheduling:** The patient creates an appointment through the web interface with a specific department/doctor.
-2. **Consultation and Diagnosis:** The doctor records specific data and diagnoses the condition during the visit.
-3. **Treatment Issuance:** The doctor issues a prescription in the system. The prescription gets a status (Not Dispensed).
-4. **Pharmaceutical Validation:** The prescription is fulfilled by the pharmacy (status changes to "Dispensed").
+### 2.1 System Actors & Responsibilities
 
-## 3. Technical Architecture (Principle Modeling)
+| Actor | Protocol Responsibilities | Primary Interface |
+| :--- | :--- | :--- |
+| **Patient** | Appointment scheduling, medical record viewing, RX tracking | Patient Nexus |
+| **Doctor** | Clinical diagnostics, encounter processing, treatment issuance | Specialist Dashboard |
+| **Admin** | Infrastructure governance, department mapping, role auditing | Command Center |
+| **Pharmacist** | *[Extended Scope]* Prescription validation and drug dispensing | Pharmacy Portal |
 
-We apply a Modern Client-Server architectural pattern (SPA Backend + REST API):
+### 2.2 Operational Workflow
 
-- **Frontend (Web UI client):** Developed with React (TypeScript), providing UI components for admin, doctor, and patient.
-- **Backend (API Service):** Developed in **Go (Golang)** with the Gin framework, managing requests, routing, and integrating permission verification. It incorporates the **Casbin** system for authorization (RBAC - Role Based Access Control).
-- **Database (Persistence):** Relational database on a **PostgreSQL** setup.
-- **Development & Deployment:** Everything is orchestrated in an integrated Docker environment, easily triggered with `docker-compose`.
+```mermaid
+sequenceDiagram
+    participant P as Patient
+    participant S as System
+    participant D as Doctor
+    participant PH as Pharmacy
+    
+    P->>S: Request Appointment (Dept/Doc/Time)
+    S-->>P: Confirm Reservation
+    P->>D: Clinical Encounter
+    D->>S: Record Diagnosis & Issue RX
+    S-->>P: Notify Digital Prescription Available
+    P->>PH: Present Digital RX
+    PH->>S: Verify & Mark as Dispensed
+    S-->>PH: Validation Success
+```
 
-## 4. Database Models (Core Entities)
+---
 
-- **Users**: (Identifiers, access roles: admin, doctor, patient, pharmacist)
-- **Departments/Medical Units**: (Specific units and departments of hospitals)
-- **Doctors**: (Additional specializations of users)
-- **Patients**: (Primary medical details, patient record)
-- **Appointments**: (The scheduling link between patient and doctor)
-- **Consultations / Medical Records**: (Visit results, medical history)
-- **Prescriptions**: (Prescription issued by the doctor with details per pharmaceutical product and its dispensing status)
+## 3. 🛠️ Technical Architecture
+
+The system follows a **Modern Distributed Monolith** pattern, utilizing a decoupled SPA + REST API architecture.
+
+### 3.1 Stack Methodology
+
+```mermaid
+graph TD
+    subgraph "Frontend Layer (React 19)"
+        UI[Glassmorphism UI]
+        State[React Hooks]
+        API_C[Axios Interceptors]
+    end
+    
+    subgraph "Backend Layer (Go 1.22)"
+        GIN[Gin Gonic Router]
+        CAS[Casbin Engine]
+        GORM[GORM ORM]
+    end
+    
+    subgraph "Persistence Layer"
+        DB[(PostgreSQL)]
+    end
+    
+    UI --> API_C
+    API_C -- "JWT (Google OAuth)" --> GIN
+    GIN --> CAS
+    CAS --> GORM
+    GORM --> DB
+```
+
+- **API Engine**: Engineered in **Go** for high concurrency and low latency.
+- **Security Logic**: **Casbin** RBAC implementation for dynamic, logic-based authorization.
+- **Persistence**: **PostgreSQL** with a strictly enforced `snake_case` schema.
+- **Orchestration**: Fully containerized using **Docker** for environment parity.
+
+---
+
+## 4. 🗄️ Core Data Entities
+
+The relational schema is designed for clinical accuracy and referential integrity:
+
+> [!NOTE]
+> All primary identifiers use `uint` increments with secondary indexing on frequently queried foreign keys (`patient_id`, `doctor_id`).
+
+1. **Users**: Central identity management (Auth, Roles).
+2. **Departments**: Hierarchical hospital organizational units.
+3. **Doctors**: Clinical profile extension (Specialization, Dept Link).
+4. **Patients**: Medical detail extension (DOB, Gender, History).
+5. **Appointments**: The core scheduling entity (Temporal link).
+6. **Consultations**: The immutable record of a clinical encounter.
+7. **Prescriptions**: Pharmaceutical directives (Medication, Dosage, Status).
+
+---
+
+## 5. 🚀 Design Principles
+
+- **Zero-Trust**: Every request is verified via JWT and Casbin policies.
+- **Reactive UI**: State-driven interface that responds to role-specific capabilities.
+- **Standardization**: Strict adherence to RESTful principles and JSON `snake_case` conventions.
+
+---
