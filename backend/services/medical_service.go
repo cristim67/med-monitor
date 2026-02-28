@@ -32,6 +32,7 @@ type MedicalService interface {
 
 	// Prescriptions
 	GetPatientPrescriptions(patientID uint) ([]models.Prescription, error)
+	GetDoctorPrescriptions(doctorID uint) ([]models.Prescription, error)
 	UpdatePrescriptionStatus(prescID uint, status string) error
 
 	// History
@@ -159,6 +160,10 @@ func (s *medicalService) CompleteAppointment(apptID uint, diagnosis, notes strin
 
 func (s *medicalService) GetPatientPrescriptions(patientID uint) ([]models.Prescription, error) {
 	return s.repo.GetPrescriptionsByPatient(patientID)
+}
+
+func (s *medicalService) GetDoctorPrescriptions(doctorID uint) ([]models.Prescription, error) {
+	return s.repo.GetPrescriptionsByDoctor(doctorID)
 }
 
 func (s *medicalService) UpdatePrescriptionStatus(prescID uint, status string) error {

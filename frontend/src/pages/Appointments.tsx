@@ -3,23 +3,23 @@ import api from '../api/axios';
 import { Calendar, Clock, User, Plus, CheckCircle, X, Pill, Trash2, Search, Stethoscope, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface Appointment {
-  ID: number;
-  AppointmentDate: string;
-  Status: string;
-  Doctor: {
-    User: { Name: string };
-    Department: { Name: string };
+  id: number;
+  appointment_date: string;
+  status: string;
+  doctor: {
+    user: { name: string };
+    department: { name: string };
   };
-  Patient: {
-    User: { Name: string };
+  patient: {
+    user: { name: string };
   };
 }
 
 interface Doctor {
-  ID: number;
-  User: { Name: string; Picture: string };
-  Department: { Name: string };
-  Specialization: string;
+  id: number;
+  user: { name: string; picture: string };
+  department: { name: string };
+  specialization: string;
 }
 
 interface Medication {
@@ -59,8 +59,8 @@ export default function Appointments() {
   const fetchData = async () => {
     try {
       const [apptsRes, docsRes] = await Promise.all([
-        api.get('/api/v1/appointments'),
-        api.get('/api/v1/doctors')
+        api.get('/api/v1/appointments').catch(() => ({ data: [] })),
+        api.get('/api/v1/doctors').catch(() => ({ data: [] }))
       ]);
       setAppointments(apptsRes.data || []);
       setDoctors(docsRes.data || []);
@@ -81,7 +81,7 @@ export default function Appointments() {
     if (!selectedDoctorObj) return;
     setLoadingSlots(true);
     try {
-      const res = await api.get(`/api/v1/doctors/${selectedDoctorObj.ID}/availability`);
+      const res = await api.get(`/api/v1/doctors/${selectedDoctorObj.id}/availability`);
       setBusySlots(res.data || []);
     } catch (err) {
       console.error('Failed to fetch availability', err);
@@ -91,10 +91,11 @@ export default function Appointments() {
   };
 
   const filteredDoctors = useMemo(() => {
+    if (doctors.length === 0) return [];
     return doctors.filter(d => 
-      d.User.Name.toLowerCase().includes(doctorSearch.toLowerCase()) || 
-      d.Department.Name.toLowerCase().includes(doctorSearch.toLowerCase()) ||
-      d.Specialization.toLowerCase().includes(doctorSearch.toLowerCase())
+      d.user.name.toLowerCase().includes(doctorSearch.toLowerCase()) || 
+      d.department.name.toLowerCase().includes(doctorSearch.toLowerCase()) ||
+      d.specialization.toLowerCase().includes(doctorSearch.toLowerCase())
     );
   }, [doctors, doctorSearch]);
 
@@ -119,7 +120,7 @@ export default function Appointments() {
     
     try {
       await api.post('/api/v1/appointments', {
-        doctor_id: selectedDoctorObj.ID,
+        doctor_id: selectedDoctorObj.id,
         date: `${bookingDate}T${selectedTime}:00Z`,
       });
       setShowBookModal(false);
@@ -219,14 +220,14 @@ export default function Appointments() {
           </div>
         ) : (
           appointments.map((appt) => (
-            <div key={appt.ID} className="glass-panel action-card" style={{ padding: 'calc(28 / 16 * 1rem)', position: 'relative', cursor: 'default' }}>
+            <div key={appt.id} className="glass-panel action-card" style={{ padding: 'calc(28 / 16 * 1rem)', position: 'relative', cursor: 'default' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'calc(28 / 16 * 1rem)' }}>
-                <div className={`badge badge-${appt.Status === 'Completed' ? 'success' : (appt.Status === 'Scheduled' ? 'primary' : 'warning')}`} style={{ textTransform: 'uppercase', letterSpacing: 'calc(1 / 16 * 1rem)', fontSize: 'calc(10 / 16 * 1rem)' }}>
-                  {appt.Status}
+                <div className={`badge badge-${appt.status === 'Completed' ? 'success' : (appt.status === 'Scheduled' ? 'primary' : 'warning')}`} style={{ textTransform: 'uppercase', letterSpacing: 'calc(1 / 16 * 1rem)', fontSize: 'calc(10 / 16 * 1rem)' }}>
+                  {appt.status}
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 'calc(16 / 16 * 1rem)', fontWeight: 800 }}>{new Date(appt.AppointmentDate).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</div>
-                  <div style={{ fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)', fontWeight: 500 }}>{new Date(appt.AppointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                  <div style={{ fontSize: 'calc(16 / 16 * 1rem)', fontWeight: 800 }}>{new Date(appt.appointment_date).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</div>
+                  <div style={{ fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)', fontWeight: 500 }}>{new Date(appt.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                 </div>
               </div>
 
@@ -239,22 +240,22 @@ export default function Appointments() {
                     {role === 'admin' ? (
                       <>
                         <span style={{ fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)', marginBottom: 'calc(4 / 16 * 1rem)' }}>OPERATIONAL UNIT</span>
-                        <span>{appt.Patient.User.Name} ⇌ {appt.Doctor.User.Name}</span>
+                        <span>{appt.patient.user.name} ⇌ {appt.doctor.user.name}</span>
                       </>
                     ) : (
-                      role === 'doctor' ? appt.Patient.User.Name : appt.Doctor.User.Name
+                      role === 'doctor' ? appt.patient.user.name : appt.doctor.user.name
                     )}
                   </div>
                   <div style={{ fontSize: 'calc(14 / 16 * 1rem)', color: 'var(--text-dim)', marginTop: 'calc(4 / 16 * 1rem)', fontWeight: 500 }}>
-                    {role === 'admin' ? appt.Doctor.Department.Name : (role === 'doctor' ? 'Clinical Patient' : `Specialist • ${appt.Doctor.Department.Name}`)}
+                    {role === 'admin' ? appt.doctor.department.name : (role === 'doctor' ? 'Clinical Patient' : `Specialist • ${appt.doctor.department.name}`)}
                   </div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: 'calc(12 / 16 * 1rem)' }}>
-                {role === 'doctor' && appt.Status === 'Scheduled' && (
+                {role === 'doctor' && appt.status === 'Scheduled' && (
                   <button 
-                    onClick={() => setShowCompleteModal(appt.ID)}
+                    onClick={() => setShowCompleteModal(appt.id)}
                     className="btn btn-primary" 
                     style={{ flex: 1, gap: 'calc(10 / 16 * 1rem)', borderRadius: 'calc(14 / 16 * 1rem)', padding: 'calc(12 / 16 * 1rem)' }}
                   >
@@ -262,9 +263,9 @@ export default function Appointments() {
                   </button>
                 )}
                 
-                {appt.Status === 'Scheduled' && (
+                {appt.status === 'Scheduled' && (
                   <button 
-                    onClick={() => handleCancel(appt.ID)}
+                    onClick={() => handleCancel(appt.id)}
                     className="btn" 
                     style={{ flex: 1, gap: 'calc(8 / 16 * 1rem)', background: 'rgba(239, 68, 68, 0.05)', color: 'var(--danger)', border: '1px solid rgba(239, 68, 68, 0.1)', borderRadius: 'calc(14 / 16 * 1rem)' }}
                   >
@@ -274,7 +275,7 @@ export default function Appointments() {
 
                 {role === 'admin' && (
                   <button 
-                    onClick={() => handleDelete(appt.ID)}
+                    onClick={() => handleDelete(appt.id)}
                     className="btn" 
                     style={{ flex: 1, gap: 'calc(8 / 16 * 1rem)', background: 'rgba(239, 68, 68, 0.15)', color: 'var(--danger)', border: '1px solid var(--danger)', borderRadius: 'calc(14 / 16 * 1rem)' }}
                   >
@@ -319,12 +320,12 @@ export default function Appointments() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {filteredDoctors.slice(0, 5).map(doc => (
-                    <div key={doc.ID} className="data-row action-card" style={{ padding: '16px', borderRadius: '16px', cursor: 'pointer', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => { setSelectedDoctorObj(doc); setBookingStep(2); }}>
+                    <div key={doc.id} className="data-row action-card" style={{ padding: '16px', borderRadius: '16px', cursor: 'pointer', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => { setSelectedDoctorObj(doc); setBookingStep(2); }}>
                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                          <img src={doc.User.Picture || `https://ui-avatars.com/api/?name=${doc.User.Name}`} alt="" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+                          <img src={doc.user.picture || `https://ui-avatars.com/api/?name=${doc.user.name}`} alt="" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
                           <div>
-                            <div style={{ fontWeight: 800 }}>{doc.User.Name}</div>
-                            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{doc.Specialization} • {doc.Department.Name}</div>
+                            <div style={{ fontWeight: 800 }}>{doc.user.name}</div>
+                            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{doc.specialization} • {doc.department.name}</div>
                           </div>
                        </div>
                        <ChevronRight size={20} color="var(--primary)" />
@@ -350,8 +351,8 @@ export default function Appointments() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <Stethoscope color="var(--primary)" size={32} />
                             <div>
-                              <div style={{ fontWeight: 800 }}>{selectedDoctorObj.User.Name}</div>
-                              <div style={{ fontSize: '12px' }}>{selectedDoctorObj.Department.Name} Unit</div>
+                              <div style={{ fontWeight: 800 }}>{selectedDoctorObj.user.name}</div>
+                              <div style={{ fontSize: '12px' }}>{selectedDoctorObj.department.name} Unit</div>
                             </div>
                           </div>
                       </div>

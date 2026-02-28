@@ -16,14 +16,14 @@ interface DashboardStats {
 }
 
 interface Appointment {
-  ID: number;
-  AppointmentDate: string;
-  Status: string;
-  Doctor: { 
-    User: { Name: string };
-    Department: { Name: string };
+  id: number;
+  appointment_date: string;
+  status: string;
+  doctor: { 
+    user: { name: string };
+    department: { name: string };
   };
-  Patient: { User: { Name: string } };
+  patient: { user: { name: string } };
 }
 
 export default function Dashboard() {
@@ -97,7 +97,7 @@ export default function Dashboard() {
     setSelectedDateFilter({ day, month, year });
 
     const appts = recentAppts.filter(a => {
-      const d = new Date(a.AppointmentDate);
+      const d = new Date(a.appointment_date);
       return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
     });
     if (appts.length > 0) setSelectedDayAppts({ day, appts });
@@ -119,7 +119,7 @@ export default function Dashboard() {
     for (let d = 1; d <= daysInMonth; d++) {
       const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
       const hasAppt = recentAppts.some(a => {
-        const date = new Date(a.AppointmentDate);
+        const date = new Date(a.appointment_date);
         return date.getFullYear() === year && date.getMonth() === month && date.getDate() === d;
       });
       const isSelected = selectedDateFilter?.day === d && selectedDateFilter?.month === month && selectedDateFilter?.year === year;
@@ -140,7 +140,7 @@ export default function Dashboard() {
 
   const filteredOps = selectedDateFilter 
     ? recentAppts.filter((a: Appointment) => {
-        const d = new Date(a.AppointmentDate);
+        const d = new Date(a.appointment_date);
         return d.getDate() === selectedDateFilter.day && d.getMonth() === selectedDateFilter.month;
       })
     : recentAppts.slice(0, 6);
@@ -327,17 +327,17 @@ export default function Dashboard() {
               </div>
             ) : (
               filteredOps.map((op: Appointment) => (
-                <div key={op.ID} className="data-row" style={{ padding: 'calc(16 / 16 * 1rem)', borderRadius: 'calc(16 / 16 * 1rem)', background: 'var(--bg-secondary)' }}>
+                <div key={op.id} className="data-row" style={{ padding: 'calc(16 / 16 * 1rem)', borderRadius: 'calc(16 / 16 * 1rem)', background: 'var(--bg-secondary)' }}>
                   <div style={{ display: 'flex', gap: 'calc(16 / 16 * 1rem)', alignItems: 'center' }}>
                     <div style={{ width: 'calc(40 / 16 * 1rem)', height: 'calc(40 / 16 * 1rem)', borderRadius: 'calc(10 / 16 * 1rem)', background: 'var(--bg-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <User size={18} color="var(--text-muted)" />
                     </div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 'calc(14 / 16 * 1rem)' }}>{role === 'patient' ? `Dr. ${op.Doctor.User.Name}` : op.Patient.User.Name}</div>
-                      <div style={{ fontSize: 'calc(12 / 16 * 1rem)', color: 'var(--text-dim)' }}>{op.Status} - {new Date(op.AppointmentDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'calc(14 / 16 * 1rem)' }}>{role === 'patient' ? `Dr. ${op.doctor.user.name}` : op.patient.user.name}</div>
+                      <div style={{ fontSize: 'calc(12 / 16 * 1rem)', color: 'var(--text-dim)' }}>{op.status} - {new Date(op.appointment_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
                   </div>
-                  <div className={`status-badge ${op.Status.toLowerCase()}`}>{op.Status[0]}</div>
+                  <div className={`status-badge ${op.status.toLowerCase()}`}>{op.status[0]}</div>
                 </div>
               ))
             )}
@@ -358,14 +358,14 @@ export default function Dashboard() {
                 <button onClick={() => setSelectedDayAppts(null)} className="theme-toggle"><X size={20} /></button>
              </div>
              <div style={{ display: 'flex', flexDirection: 'column', gap: 'calc(16 / 16 * 1rem)' }}>
-                {selectedDayAppts.appts.map((a: Appointment) => (
-                  <div key={a.ID} style={{ padding: 'calc(20 / 16 * 1rem)', borderRadius: 'calc(20 / 16 * 1rem)', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                 {selectedDayAppts.appts.map((a: Appointment) => (
+                  <div key={a.id} style={{ padding: 'calc(20 / 16 * 1rem)', borderRadius: 'calc(20 / 16 * 1rem)', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                      <div>
-                        <div style={{ color: 'var(--primary)', fontWeight: 800, fontSize: 'calc(12 / 16 * 1rem)', marginBottom: 'calc(4 / 16 * 1rem)' }}>{new Date(a.AppointmentDate).toLocaleTimeString()}</div>
-                        <div style={{ fontWeight: 700 }}>{a.Patient.User.Name}</div>
-                        <div style={{ fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)' }}>Dr. {a.Doctor.User.Name} ({a.Doctor.Department.Name})</div>
+                        <div style={{ color: 'var(--primary)', fontWeight: 800, fontSize: 'calc(12 / 16 * 1rem)', marginBottom: 'calc(4 / 16 * 1rem)' }}>{new Date(a.appointment_date).toLocaleTimeString()}</div>
+                        <div style={{ fontWeight: 700 }}>{a.patient.user.name}</div>
+                        <div style={{ fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)' }}>Dr. {a.doctor.user.name} ({a.doctor.department.name})</div>
                      </div>
-                     <div className={`badge badge-${a.Status === 'Completed' ? 'success' : 'primary'}`}>{a.Status}</div>
+                     <div className={`badge badge-${a.status === 'Completed' ? 'success' : 'primary'}`}>{a.status}</div>
                   </div>
                 ))}
              </div>

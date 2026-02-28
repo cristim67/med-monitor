@@ -49,26 +49,32 @@ export default function Layout() {
     const syncRole = async () => {
       try {
         const res = await api.get('/api/v1/profile');
-        const latestRole = res.data.Role;
-        const latestName = res.data.Name;
-        const latestPicture = res.data.Picture;
+        const latestRole = res.data.role;
+        const latestName = res.data.name;
+        const latestPicture = res.data.picture;
 
         let changed = false;
-        if (latestRole && latestRole !== role) {
+        
+        // Only mark as changed if the fields are actually present in response and different
+        if (latestRole !== undefined && latestRole !== null && latestRole !== role) {
           localStorage.setItem('user_role', latestRole);
           changed = true;
         }
-        if (latestName && latestName !== localStorage.getItem('user_name')) {
+        
+        const currentStoredName = localStorage.getItem('user_name');
+        if (latestName !== undefined && latestName !== null && latestName !== currentStoredName) {
           localStorage.setItem('user_name', latestName);
           changed = true;
         }
-        if (latestPicture !== localStorage.getItem('user_picture')) {
+
+        const currentStoredPic = localStorage.getItem('user_picture');
+        if (latestPicture !== undefined && latestPicture !== null && latestPicture !== currentStoredPic) {
           localStorage.setItem('user_picture', latestPicture || '');
           changed = true;
         }
 
         if (changed) {
-          console.log('Profile updated from sync');
+          console.log('Profile updated from sync - Refreshing...');
           window.location.reload(); 
         }
       } catch (err) {

@@ -39,6 +39,7 @@ type MedicalRepository interface {
 	CreatePrescription(presc *models.Prescription) error
 	GetPrescriptionsByConsultation(consID uint) ([]models.Prescription, error)
 	GetPrescriptionsByPatient(patientID uint) ([]models.Prescription, error)
+	GetPrescriptionsByDoctor(doctorID uint) ([]models.Prescription, error)
 	UpdatePrescription(presc *models.Prescription) error
 }
 
@@ -119,13 +120,13 @@ func (r *medicalRepository) CreateAppointment(appt *models.Appointment) error {
 
 func (r *medicalRepository) GetAppointmentsByPatient(patientID uint) ([]models.Appointment, error) {
 	var appts []models.Appointment
-	err := r.db.Preload("Doctor.User").Preload("Doctor.Department").Where("patient_id = ?", patientID).Order("appointment_date desc").Find(&appts).Error
+	err := r.db.Preload("Patient.User").Preload("Doctor.User").Preload("Doctor.Department").Where("patient_id = ?", patientID).Order("appointment_date desc").Find(&appts).Error
 	return appts, err
 }
 
 func (r *medicalRepository) GetAppointmentsByDoctor(doctorID uint) ([]models.Appointment, error) {
 	var appts []models.Appointment
-	err := r.db.Preload("Patient.User").Where("doctor_id = ?", doctorID).Order("appointment_date desc").Find(&appts).Error
+	err := r.db.Preload("Patient.User").Preload("Doctor.User").Preload("Doctor.Department").Where("doctor_id = ?", doctorID).Order("appointment_date desc").Find(&appts).Error
 	return appts, err
 }
 
@@ -175,6 +176,18 @@ func (r *medicalRepository) GetPrescriptionsByPatient(patientID uint) ([]models.
 		Joins("JOIN appointments ON appointments.id = consultations.appointment_id").
 		Preload("Consultation.Appointment.Doctor.User").
 		Where("appointments.patient_id = ?", patientID).
+		Order("prescriptions.created_at desc").
+		Find(&prescs).Error
+	return prescs, err
+}
+
+func (r *medicalRepository) GetPrescriptionsByDoctor(doctorID uint) ([]models.Prescription, error) {
+	var prescs []models.Prescription
+	err := r.db.Joins("JOIN consultations ON consultations.id = prescriptions.consultation_id").
+		Joins("JOIN appointments ON appointments.id = consultations.appointment_id").
+		Preload("Consultation.Appointment.Patient.User").
+		Preload("Consultation.Appointment.Doctor.User").
+		Where("appointments.doctor_id = ?", doctorID).
 		Order("prescriptions.created_at desc").
 		Find(&prescs).Error
 	return prescs, err

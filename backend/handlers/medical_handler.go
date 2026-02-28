@@ -212,7 +212,17 @@ func (h *MedicalHandler) DeleteAppointment(c *gin.Context) {
 
 func (h *MedicalHandler) GetMyPrescriptions(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	prescs, err := h.service.GetPatientPrescriptions(userID)
+	role := c.GetString("user_role")
+
+	var prescs []models.Prescription
+	var err error
+
+	if role == string(models.RoleDoctor) {
+		prescs, err = h.service.GetDoctorPrescriptions(userID)
+	} else {
+		prescs, err = h.service.GetPatientPrescriptions(userID)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

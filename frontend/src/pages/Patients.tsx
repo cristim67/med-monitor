@@ -3,13 +3,13 @@ import api from '../api/axios';
 import { Search, Mail, ChevronRight, X, User, Calendar, Pill, FileText, Clock } from 'lucide-react';
 
 interface Patient {
-  ID: number;
-  Gender: string;
-  DateOfBirth: string;
-  User: {
-    Name: string;
-    Email: string;
-    Picture: string;
+  id: number;
+  gender: string;
+  date_of_birth: string;
+  user: {
+    name: string;
+    email: string;
+    picture: string;
   };
 }
 
@@ -47,7 +47,7 @@ export default function Patients() {
     setSelectedPatient(patient);
     setLoadingHistory(true);
     try {
-      const res = await api.get(`/api/v1/patients/${patient.ID}/history`);
+      const res = await api.get(`/api/v1/patients/${patient.id}/history`);
       setHistory(res.data);
     } catch (err) {
       console.error('Failed to fetch history', err);
@@ -57,8 +57,8 @@ export default function Patients() {
   };
 
   const filteredPatients = patients.filter(p => 
-    p.User.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.User.Email.toLowerCase().includes(searchTerm.toLowerCase())
+    p.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) return (
@@ -97,16 +97,16 @@ export default function Patients() {
           </thead>
           <tbody>
             {filteredPatients.map(p => (
-              <tr key={p.ID} style={{ borderBottom: '1px solid var(--card-border)', transition: 'background 0.2s' }} className="table-row-hover">
+              <tr key={p.id} style={{ borderBottom: '1px solid var(--card-border)', transition: 'background 0.2s' }} className="table-row-hover">
                 <td style={{ padding: '16px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <img src={p.User.Picture || `https://ui-avatars.com/api/?name=${p.User.Name}`} alt="" style={{ width: '40px', height: '40px', borderRadius: '12px', border: '1px solid var(--card-border)' }} />
-                    <div style={{ fontWeight: 600 }}>{p.User.Name}</div>
+                    <img src={p.user.picture || `https://ui-avatars.com/api/?name=${p.user.name}`} alt="" style={{ width: '40px', height: '40px', borderRadius: '12px', border: '1px solid var(--card-border)' }} />
+                    <div style={{ fontWeight: 600 }}>{p.user.name}</div>
                   </div>
                 </td>
                 <td style={{ padding: '16px 24px', color: 'var(--text-muted)', fontSize: '14px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Mail size={14} /> {p.User.Email}
+                    <Mail size={14} /> {p.user.email}
                   </div>
                 </td>
                 <td style={{ padding: '16px 24px', textAlign: 'right' }}>
@@ -126,10 +126,10 @@ export default function Patients() {
           <div className="modal-content glass-panel" style={{ maxWidth: '800px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                 <img src={selectedPatient.User.Picture || `https://ui-avatars.com/api/?name=${selectedPatient.User.Name}`} alt="" style={{ width: '64px', height: '64px', borderRadius: '16px' }} />
+                 <img src={selectedPatient.user.picture || `https://ui-avatars.com/api/?name=${selectedPatient.user.name}`} alt="" style={{ width: '64px', height: '64px', borderRadius: '16px' }} />
                  <div>
-                    <h2 style={{ marginBottom: '4px' }}>{selectedPatient.User.Name}</h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Medical Record ID: #{selectedPatient.ID.toString().padStart(5, '0')}</p>
+                    <h2 style={{ marginBottom: '4px' }}>{selectedPatient.user.name}</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Medical Record ID: #{selectedPatient.id.toString().padStart(5, '0')}</p>
                  </div>
               </div>
               <button className="theme-toggle" onClick={() => setSelectedPatient(null)}><X size={20} /></button>
@@ -142,18 +142,18 @@ export default function Patients() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                      <div>
                         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>EMAIL ADDRESS</div>
-                        <div style={{ fontSize: '14px' }}>{selectedPatient.User.Email}</div>
+                        <div style={{ fontSize: '14px' }}>{selectedPatient.user.email}</div>
                      </div>
-                     {selectedPatient.DateOfBirth && (
+                     {selectedPatient.date_of_birth && (
                        <div>
                           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>DATE OF BIRTH</div>
-                          <div style={{ fontSize: '14px' }}>{new Date(selectedPatient.DateOfBirth).toLocaleDateString()}</div>
+                          <div style={{ fontSize: '14px' }}>{new Date(selectedPatient.date_of_birth).toLocaleDateString()}</div>
                        </div>
                      )}
-                     {selectedPatient.Gender && (
+                     {selectedPatient.gender && (
                        <div>
                           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>GENDER</div>
-                          <div style={{ fontSize: '14px' }}>{selectedPatient.Gender}</div>
+                          <div style={{ fontSize: '14px' }}>{selectedPatient.gender}</div>
                        </div>
                      )}
                   </div>
@@ -173,16 +173,16 @@ export default function Patients() {
                              <Calendar size={16} /> Past Appointments
                           </h4>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                             {history?.appointments.filter(a => a.Status === 'Completed').slice(0, 3).map(a => (
-                                <div key={a.ID} style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '10px', fontSize: '13px' }}>
+                             {history?.appointments.filter(a => a.status === 'Completed').slice(0, 3).map(a => (
+                                <div key={a.id} style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '10px', fontSize: '13px' }}>
                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                      <span style={{ fontWeight: 600 }}>{new Date(a.AppointmentDate).toLocaleDateString()}</span>
+                                      <span style={{ fontWeight: 600 }}>{new Date(a.appointment_date).toLocaleDateString()}</span>
                                       <span className="status-badge completed">Completed</span>
                                    </div>
-                                   <div style={{ color: 'var(--text-muted)' }}>Dr. {a.Doctor.User.Name} ({a.Doctor.Department.Name})</div>
+                                   <div style={{ color: 'var(--text-muted)' }}>Dr. {a.doctor.user.name} ({a.doctor.department.name})</div>
                                 </div>
                              ))}
-                             {(!history?.appointments || history.appointments.filter(a => a.Status === 'Completed').length === 0) && (
+                             {(!history?.appointments || history.appointments.filter(a => a.status === 'Completed').length === 0) && (
                                 <div style={{ fontSize: '13px', color: 'var(--text-muted)', padding: '12px', border: '1px dashed var(--card-border)', borderRadius: '10px' }}>No past consultations found.</div>
                              )}
                           </div>
@@ -195,9 +195,9 @@ export default function Patients() {
                           </h4>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                              {history?.prescriptions.slice(0, 3).map(p => (
-                                <div key={p.ID} style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '10px', fontSize: '13px' }}>
-                                   <div style={{ fontWeight: 600, color: 'var(--primary)' }}>{p.Medication} <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '12px' }}>({p.Dosage})</span></div>
-                                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Issued by Dr. {p.Consultation.Appointment.Doctor.User.Name}</div>
+                                <div key={p.id} style={{ padding: '12px', background: 'var(--bg-secondary)', borderRadius: '10px', fontSize: '13px' }}>
+                                   <div style={{ fontWeight: 600, color: 'var(--primary)' }}>{p.medication} <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '12px' }}>({p.dosage})</span></div>
+                                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Issued by Dr. {p.consultation.appointment.doctor.user.name}</div>
                                 </div>
                              ))}
                              {(!history?.prescriptions || history.prescriptions.length === 0) && (

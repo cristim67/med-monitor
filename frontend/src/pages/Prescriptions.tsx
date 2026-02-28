@@ -3,15 +3,18 @@ import api from '../api/axios';
 import { Pill, Printer, ExternalLink, ShieldCheck, Clock } from 'lucide-react';
 
 interface Prescription {
-  ID: number;
-  Medication: string;
-  Dosage: string;
-  Status: string;
-  CreatedAt: string;
-  Consultation: {
-    Appointment: {
-      Doctor: {
-        User: { Name: string };
+  id: number;
+  medication: string;
+  dosage: string;
+  status: string;
+  created_at: string;
+  consultation: {
+    appointment: {
+      doctor: {
+        user: { name: string };
+      };
+      patient: {
+        user: { name: string };
       };
     };
   };
@@ -20,6 +23,7 @@ interface Prescription {
 export default function Prescriptions() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(true);
+  const role = localStorage.getItem('user_role') || 'patient';
 
   useEffect(() => {
     fetchPrescriptions();
@@ -52,36 +56,38 @@ export default function Prescriptions() {
               <Pill size={32} color="var(--primary)" />
             </div>
             <h3 style={{ fontSize: '20px', fontWeight: 800 }}>No active prescriptions</h3>
-            <p style={{ color: 'var(--text-dim)', maxWidth: '300px', margin: '12px auto' }}>Your clinical history is empty. Consult with a specialist to receive digital prescriptions.</p>
+            <p style={{ color: 'var(--text-dim)', maxWidth: '300px', margin: '12px auto' }}>
+              {role === 'doctor' ? 'You have not issued any prescriptions yet. Your clinical records will appear here.' : 'Your clinical history is empty. Consult with a specialist to receive digital prescriptions.'}
+            </p>
           </div>
         ) : (
           prescriptions.map(presc => (
-            <div key={presc.ID} className="glass-panel action-card" style={{ padding: '32px', position: 'relative', overflow: 'hidden', cursor: 'default' }}>
+            <div key={presc.id} className="glass-panel action-card" style={{ padding: '32px', position: 'relative', overflow: 'hidden', cursor: 'default' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
                   <div className="icon-wrapper" style={{ width: '64px', height: '64px', flexShrink: 0 }}>
                     <Pill size={28} />
                   </div>
                   <div>
-                    <div className="badge badge-primary" style={{ marginBottom: '8px', fontSize: '10px' }}>RX #{presc.ID.toString().padStart(6, '0')}</div>
-                    <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>{presc.Medication}</h2>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '15px', fontWeight: 500 }}>{presc.Dosage}</p>
+                    <div className="badge badge-primary" style={{ marginBottom: '8px', fontSize: '10px' }}>RX #{presc.id.toString().padStart(6, '0')}</div>
+                    <h2 style={{ fontSize: '22px', fontWeight: 800, marginBottom: '4px' }}>{presc.medication}</h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '15px', fontWeight: 500 }}>{presc.dosage}</p>
                     <div style={{ display: 'flex', gap: '20px', marginTop: '16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-dim)' }}>
                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />
-                         Dr. {presc.Consultation.Appointment.Doctor.User.Name}
+                         {role === 'doctor' ? `Patient: ${presc.consultation.appointment.patient.user.name}` : `Dr. ${presc.consultation.appointment.doctor.user.name}`}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-dim)' }}>
-                         <Clock size={14} /> Issued: {new Date(presc.CreatedAt).toLocaleDateString()}
+                         <Clock size={14} /> Issued: {new Date(presc.created_at).toLocaleDateString()}
                       </div>
                     </div>
                   </div>
                 </div>
                 
                 <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '16px' }}>
-                  <div className={`badge badge-${presc.Status === 'Issued' ? 'success' : 'primary'}`} style={{ textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    {presc.Status === 'Issued' ? <ShieldCheck size={14} style={{ marginRight: '6px' }} /> : <Clock size={14} style={{ marginRight: '6px' }} />}
-                    {presc.Status}
+                  <div className={`badge badge-${presc.status === 'Issued' ? 'success' : 'primary'}`} style={{ textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    {presc.status === 'Issued' ? <ShieldCheck size={14} style={{ marginRight: '6px' }} /> : <Clock size={14} style={{ marginRight: '6px' }} />}
+                    {presc.status}
                   </div>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button className="theme-toggle" title="Print Prescription" style={{ padding: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '12px' }}>

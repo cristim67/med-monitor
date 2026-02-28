@@ -3,16 +3,16 @@ import api from '../api/axios';
 import { Shield, Mail, Search, Clock, X, Stethoscope, Building2 } from 'lucide-react';
 
 interface UserData {
-  ID: number;
-  Email: string;
-  Name: string;
-  Role: string;
-  Picture: string;
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  picture: string;
 }
 
 interface Department {
-  ID: number;
-  Name: string;
+  id: number;
+  name: string;
 }
 
 export default function AdminUsers() {
@@ -52,7 +52,7 @@ export default function AdminUsers() {
       setSelectedDept('');
       setSpecialization('');
     } else {
-      updateUserRole(user.ID, newRole);
+      updateUserRole(user.id, newRole);
     }
   };
 
@@ -75,8 +75,8 @@ export default function AdminUsers() {
   };
 
   const filteredUsers = users.filter(u => 
-    u.Name.toLowerCase().includes(search.toLowerCase()) || 
-    u.Email.toLowerCase().includes(search.toLowerCase())
+    u.name.toLowerCase().includes(search.toLowerCase()) || 
+    u.email.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -121,26 +121,26 @@ export default function AdminUsers() {
             ) : filteredUsers.length === 0 ? (
               <tr><td colSpan={3} style={{ padding: 'calc(60 / 16 * 1rem)', textAlign: 'center' }}>No users found matching your search.</td></tr>
             ) : filteredUsers.map(user => (
-              <tr key={user.ID} style={{ borderBottom: '1px solid var(--card-border)', transition: 'background 0.2s' }} className="table-row-hover">
+              <tr key={user.id} style={{ borderBottom: '1px solid var(--card-border)', transition: 'background 0.2s' }} className="table-row-hover">
                 <td style={{ padding: '20px 24px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'calc(16 / 16 * 1rem)' }}>
                     <img 
-                      src={user.Picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.Name)}&background=3b82f6&color=fff`} 
+                      src={user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3b82f6&color=fff`} 
                       alt="" 
                       style={{ width: 'calc(40 / 16 * 1rem)', height: 'calc(40 / 16 * 1rem)', borderRadius: 'calc(10 / 16 * 1rem)', objectFit: 'cover' }}
                       referrerPolicy="no-referrer"
                     />
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 'calc(15 / 16 * 1rem)' }}>{user.Name}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'calc(15 / 16 * 1rem)' }}>{user.name}</div>
                       <div style={{ fontSize: 'calc(13 / 16 * 1rem)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 'calc(4 / 16 * 1rem)' }}>
-                        <Mail size={12} /> {user.Email}
+                        <Mail size={12} /> {user.email}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td style={{ padding: '20px 24px' }}>
-                  <span className={`status-badge ${user.Role}`}>
-                    {user.Role}
+                  <span className={`status-badge ${user.role}`}>
+                    {user.role}
                   </span>
                 </td>
                 <td style={{ padding: '20px 24px', textAlign: 'right' }}>
@@ -148,15 +148,15 @@ export default function AdminUsers() {
                       <select 
                         className="form-control" 
                         style={{ width: 'auto', padding: '4px 8px', fontSize: 'calc(13 / 16 * 1rem)' }}
-                        value={user.Role}
-                        disabled={updating === user.ID}
+                        value={user.role}
+                        disabled={updating === user.id}
                         onChange={(e) => handleRoleChange(user, e.target.value)}
                       >
                         <option value="patient">Patient</option>
                         <option value="doctor">Doctor</option>
                         <option value="admin">Admin</option>
                       </select>
-                      {updating === user.ID && <Clock size={18} className="spin" style={{ alignSelf: 'center' }} />}
+                      {updating === user.id && <Clock size={18} className="spin" style={{ alignSelf: 'center' }} />}
                    </div>
                 </td>
               </tr>
@@ -175,9 +175,9 @@ export default function AdminUsers() {
             </div>
             <div style={{ marginTop: '24px' }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--bg-secondary)', borderRadius: '16px', marginBottom: '24px' }}>
-                  <img src={showDoctorModal.Picture} alt="" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+                  <img src={showDoctorModal.picture} alt="" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
                   <div>
-                    <div style={{ fontWeight: 800 }}>{showDoctorModal.Name}</div>
+                    <div style={{ fontWeight: 800 }}>{showDoctorModal.name}</div>
                     <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Assiging Doctor profile</div>
                   </div>
                </div>
@@ -193,7 +193,7 @@ export default function AdminUsers() {
                       onChange={(e) => setSelectedDept(e.target.value)}
                     >
                        <option value="">Select department...</option>
-                       {departments.map(d => <option key={d.ID} value={d.ID}>{d.Name}</option>)}
+                       {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
                   </div>
                </div>
@@ -216,7 +216,7 @@ export default function AdminUsers() {
                <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
                   <button 
                     disabled={updating !== null || !selectedDept}
-                    onClick={() => updateUserRole(showDoctorModal.ID, 'doctor', parseInt(selectedDept), specialization)}
+                    onClick={() => updateUserRole(showDoctorModal.id, 'doctor', parseInt(selectedDept), specialization)}
                     className="btn btn-primary" 
                     style={{ flex: 1.5, borderRadius: '14px' }}
                   >
