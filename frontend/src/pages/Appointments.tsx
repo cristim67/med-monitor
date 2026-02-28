@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import api from '../api/axios';
-import { Calendar, Clock, User, Plus, CheckCircle, X, Pill, Trash2 } from 'lucide-react';
+import { Calendar, Clock, User, Plus, CheckCircle, X, Pill, Trash2, Search, Stethoscope, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface Appointment {
   ID: number;
@@ -17,7 +17,7 @@ interface Appointment {
 
 interface Doctor {
   ID: number;
-  User: { Name: string };
+  User: { Name: string; Picture: string };
   Department: { Name: string };
   Specialization: string;
 }
@@ -36,9 +36,16 @@ export default function Appointments() {
   const [showBookModal, setShowBookModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState<number | null>(null);
 
+  // Booking Flow State
+  const [bookingStep, setBookingStep] = useState(1);
+  const [doctorSearch, setDoctorSearch] = useState('');
+  const [selectedDoctorObj, setSelectedDoctorObj] = useState<Doctor | null>(null);
+  const [bookingDate, setBookingDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedTime, setSelectedTime] = useState('');
+  const [busySlots, setBusySlots] = useState<{date: string; status: string}[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
   // Form States
-  const [selectedDoctor, setSelectedDoctor] = useState('');
-  const [bookingDate, setBookingDate] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
   const [notes, setNotes] = useState('');
   const [meds, setMeds] = useState<Medication[]>([]);
@@ -64,12 +71,56 @@ export default function Appointments() {
     }
   };
 
+  useEffect(() => {
+    if (selectedDoctorObj && bookingDate) {
+      fetchAvailability();
+    }
+  }, [selectedDoctorObj, bookingDate]);
+
+  const fetchAvailability = async () => {
+    if (!selectedDoctorObj) return;
+    setLoadingSlots(true);
+    try {
+      const res = await api.get(`/api/v1/doctors/${selectedDoctorObj.ID}/availability`);
+      setBusySlots(res.data || []);
+    } catch (err) {
+      console.error('Failed to fetch availability', err);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const filteredDoctors = useMemo(() => {
+    return doctors.filter(d => 
+      d.User.Name.toLowerCase().includes(doctorSearch.toLowerCase()) || 
+      d.Department.Name.toLowerCase().includes(doctorSearch.toLowerCase()) ||
+      d.Specialization.toLowerCase().includes(doctorSearch.toLowerCase())
+    );
+  }, [doctors, doctorSearch]);
+
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    for (let i = 9; i < 18; i++) {
+      slots.push(`${String(i).padStart(2, '0')}:00`);
+      slots.push(`${String(i).padStart(2, '0')}:30`);
+    }
+    return slots;
+  }, []);
+
+  const isSlotBusy = (time: string) => {
+    if (!bookingDate) return false;
+    // Check if any busy slot matches bookingDate T time
+    return busySlots.some(s => s.date.startsWith(`${bookingDate}T${time}`) && s.status !== 'Cancelled');
+  };
+
   const handleBook = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedDoctorObj || !bookingDate || !selectedTime) return;
+    
     try {
       await api.post('/api/v1/appointments', {
-        doctor_id: parseInt(selectedDoctor),
-        date: bookingDate,
+        doctor_id: selectedDoctorObj.ID,
+        date: `${bookingDate}T${selectedTime}:00Z`,
       });
       setShowBookModal(false);
       resetBookForm();
@@ -118,8 +169,11 @@ export default function Appointments() {
   };
 
   const resetBookForm = () => {
-    setSelectedDoctor('');
-    setBookingDate('');
+    setBookingStep(1);
+    setSelectedDoctorObj(null);
+    setBookingDate(new Date().toISOString().split('T')[0]);
+    setSelectedTime('');
+    setDoctorSearch('');
   };
 
   const resetCompleteForm = () => {
@@ -150,7 +204,7 @@ export default function Appointments() {
             <h1 className="page-title">Digital appointment scheduler</h1>
             <p className="page-subtitle" style={{ color: 'rgba(255,255,255,0.8)' }}>Optimize clinical workflows and manage medical consultations.</p>
           </div>
-          <button className="btn btn-primary" onClick={() => setShowBookModal(true)} style={{ background: 'white', color: 'var(--primary)', fontWeight: 800, padding: '12px 24px', borderRadius: 'calc(14 / 16 * 1rem)', border: 'none' }}>
+          <button className="btn btn-primary" onClick={() => { resetBookForm(); setShowBookModal(true); }} style={{ background: 'white', color: 'var(--primary)', fontWeight: 800, padding: '12px 24px', borderRadius: 'calc(14 / 16 * 1rem)', border: 'none', position: 'relative', zIndex: 10 }}>
             <Plus size={20} /> Reserve slot
           </button>
         </div>
@@ -233,46 +287,136 @@ export default function Appointments() {
         )}
       </div>
 
-      {/* Booking Modal */}
+      {/* NEW Booking Modal - Flow Based */}
       {showBookModal && (
         <div className="modal-overlay" onClick={() => setShowBookModal(false)}>
-          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ maxWidth: 'calc(500 / 16 * 1rem)' }}>
+          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ maxWidth: 'calc(750 / 16 * 1rem)', width: '95%', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
-              <h2 style={{ fontSize: 'calc(24 / 16 * 1rem)', fontWeight: 800 }}>Clinical booking</h2>
+              <div>
+                <h2 style={{ fontSize: 'calc(24 / 16 * 1rem)', fontWeight: 800 }}>Clinical booking</h2>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    <div className={`badge ${bookingStep >= 1 ? 'badge-primary' : 'badge-dim'}`} style={{fontSize: '9px'}}>1. DOCTOR</div>
+                    <div className={`badge ${bookingStep >= 2 ? 'badge-primary' : 'badge-dim'}`} style={{fontSize: '9px'}}>2. SLOT</div>
+                </div>
+              </div>
               <button className="theme-toggle" onClick={() => setShowBookModal(false)}><X size={20} /></button>
             </div>
-            <form onSubmit={handleBook} style={{ marginTop: 'calc(24 / 16 * 1rem)' }}>
-              <div className="form-group">
-                <label className="form-label">Medical specialist</label>
-                <select 
-                  className="form-control"
-                  style={{ borderRadius: 'calc(14 / 16 * 1rem)', padding: 'calc(14 / 16 * 1rem)' }}
-                  value={selectedDoctor} 
-                  onChange={(e) => setSelectedDoctor(e.target.value)}
-                  required
-                >
-                  <option value="">Choose your specialist...</option>
-                  {doctors.map(doc => (
-                    <option key={doc.ID} value={doc.ID}>{doc.User.Name} — {doc.Department.Name}</option>
+            
+            {bookingStep === 1 && (
+              <div style={{ marginTop: 'calc(24 / 16 * 1rem)' }}>
+                <div className="form-group" style={{ position: 'relative', marginBottom: '24px' }}>
+                  <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    placeholder="Search doctor by name, specialty or clinic..." 
+                    style={{ paddingLeft: '44px', borderRadius: '16px' }}
+                    value={doctorSearch}
+                    onChange={(e) => setDoctorSearch(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {filteredDoctors.slice(0, 5).map(doc => (
+                    <div key={doc.ID} className="data-row action-card" style={{ padding: '16px', borderRadius: '16px', cursor: 'pointer', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }} onClick={() => { setSelectedDoctorObj(doc); setBookingStep(2); }}>
+                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                          <img src={doc.User.Picture || `https://ui-avatars.com/api/?name=${doc.User.Name}`} alt="" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+                          <div>
+                            <div style={{ fontWeight: 800 }}>{doc.User.Name}</div>
+                            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{doc.Specialization} • {doc.Department.Name}</div>
+                          </div>
+                       </div>
+                       <ChevronRight size={20} color="var(--primary)" />
+                    </div>
                   ))}
-                </select>
+                  {filteredDoctors.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-dim)' }}>No matching specialists found.</div>
+                  )}
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Appointment timeline</label>
-                <input 
-                  type="datetime-local" 
-                  className="form-control"
-                  style={{ borderRadius: 'calc(14 / 16 * 1rem)', padding: 'calc(14 / 16 * 1rem)' }}
-                  value={bookingDate}
-                  onChange={(e) => setBookingDate(e.target.value)}
-                  required
-                />
+            )}
+
+            {bookingStep === 2 && selectedDoctorObj && (
+              <div style={{ marginTop: 'calc(24 / 16 * 1rem)' }}>
+                <button className="btn" style={{ marginBottom: '24px', padding: '8px 12px', fontSize: '12px' }} onClick={() => setBookingStep(1)}>
+                  <ChevronLeft size={16} /> Back to Doctor selection
+                </button>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+                   {/* Left Panel: Doctor Summary & Date */}
+                   <div>
+                      <div className="glass-panel" style={{ padding: '16px', background: 'var(--primary-glow)', border: '1px solid var(--primary)', marginBottom: '24px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <Stethoscope color="var(--primary)" size={32} />
+                            <div>
+                              <div style={{ fontWeight: 800 }}>{selectedDoctorObj.User.Name}</div>
+                              <div style={{ fontSize: '12px' }}>{selectedDoctorObj.Department.Name} Unit</div>
+                            </div>
+                          </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label">Consultation Date</label>
+                        <input 
+                          type="date" 
+                          className="form-control" 
+                          style={{ borderRadius: '14px' }}
+                          value={bookingDate}
+                          onChange={(e) => setBookingDate(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                   </div>
+
+                   {/* Right Panel: Slots Grid */}
+                   <div>
+                      <label className="form-label">Available Time Slots</label>
+                      {loadingSlots ? (
+                        <div style={{ padding: '20px', textAlign: 'center' }}><Clock className="spin" /></div>
+                      ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                           {timeSlots.map(time => {
+                             const busy = isSlotBusy(time);
+                             return (
+                               <button 
+                                 key={time} 
+                                 disabled={busy}
+                                 className={`btn ${selectedTime === time ? 'btn-primary' : ''}`}
+                                 style={{ 
+                                   padding: '8px', 
+                                   fontSize: '12px', 
+                                   borderRadius: '10px',
+                                   opacity: busy ? 0.3 : 1,
+                                   background: selectedTime === time ? 'var(--primary)' : 'var(--bg-surface)',
+                                   color: selectedTime === time ? 'white' : 'var(--text-main)',
+                                   border: busy ? 'none' : '1px solid var(--card-border)'
+                                 }}
+                                 onClick={() => setSelectedTime(time)}
+                               >
+                                 {time}
+                               </button>
+                             );
+                           })}
+                        </div>
+                      )}
+                      <p style={{ marginTop: '16px', fontSize: '11px', color: 'var(--text-dim)' }}>* Slots are calculated based on standard 30-min clinical windows.</p>
+                   </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 'calc(16 / 16 * 1rem)', marginTop: 'calc(40 / 16 * 1rem)' }}>
+                  <button 
+                    onClick={handleBook} 
+                    disabled={!selectedTime}
+                    className="btn btn-primary" 
+                    style={{ flex: 1.5, borderRadius: 'calc(14 / 16 * 1rem)', padding: 'calc(14 / 16 * 1rem)' }}
+                  >
+                    Confirm Appointment
+                  </button>
+                  <button type="button" className="btn" style={{ flex: 1, borderRadius: 'calc(14 / 16 * 1rem)' }} onClick={() => setShowBookModal(false)}>Cancel</button>
+                </div>
               </div>
-              <div style={{ display: 'flex', gap: 'calc(16 / 16 * 1rem)', marginTop: 'calc(40 / 16 * 1rem)' }}>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1.5, borderRadius: 'calc(14 / 16 * 1rem)', padding: 'calc(14 / 16 * 1rem)' }}>Initialize booking</button>
-                <button type="button" className="btn" style={{ flex: 1, borderRadius: 'calc(14 / 16 * 1rem)' }} onClick={() => setShowBookModal(false)}>Discard</button>
-              </div>
-            </form>
+            )}
           </div>
         </div>
       )}

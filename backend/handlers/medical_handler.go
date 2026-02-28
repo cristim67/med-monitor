@@ -79,6 +79,31 @@ func (h *MedicalHandler) GetDoctors(c *gin.Context) {
 	c.JSON(http.StatusOK, docs)
 }
 
+func (h *MedicalHandler) GetDoctorAvailability(c *gin.Context) {
+	docIDStr := c.Param("id")
+	docID, _ := strconv.ParseUint(docIDStr, 10, 32)
+
+	appts, err := h.service.GetDoctorAppointments(uint(docID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Filter to only return necessary info for availability
+	type SimpleAppt struct {
+		Date   string `json:"date"`
+		Status string `json:"status"`
+	}
+	var availability []SimpleAppt
+	for _, a := range appts {
+		availability = append(availability, SimpleAppt{
+			Date:   a.AppointmentDate.Format(models.RFC3339NoNano), // Need to ensure consistent format
+			Status: string(a.Status),
+		})
+	}
+	c.JSON(http.StatusOK, availability)
+}
+
 func (h *MedicalHandler) GetPatients(c *gin.Context) {
 	patients, err := h.service.GetPatients()
 	if err != nil {

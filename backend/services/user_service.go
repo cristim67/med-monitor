@@ -12,7 +12,7 @@ import (
 type UserService interface {
 	GetOrCreateUserByClaims(claims *utils.GoogleClaims) (*models.User, error)
 	GetAllUsers() ([]models.User, error)
-	UpdateUserRole(id uint, role string) error
+	UpdateUserRole(id uint, role string, deptID uint, spec string) error
 }
 
 type userService struct {
@@ -28,7 +28,7 @@ func (s *userService) GetAllUsers() ([]models.User, error) {
 	return s.repo.GetAllUsers()
 }
 
-func (s *userService) UpdateUserRole(id uint, role string) error {
+func (s *userService) UpdateUserRole(id uint, role string, deptID uint, spec string) error {
 	user, err := s.repo.FindByID(id)
 	if err != nil {
 		return err
@@ -39,16 +39,22 @@ func (s *userService) UpdateUserRole(id uint, role string) error {
 		return err
 	}
 
-	// Create specific profile if needed
+	// Create/Update specific profile if needed
 	if user.Role == models.RoleDoctor {
-		_, err := s.medRepo.GetDoctorByID(id)
+		doc, err := s.medRepo.GetDoctorByID(id)
 		if err != nil {
 			// Create doctor profile
 			doctor := &models.Doctor{
 				ID:             id,
-				Specialization: "Pending...",
+				DepartmentID:   deptID,
+				Specialization: spec,
 			}
 			return s.medRepo.CreateDoctor(doctor)
+		} else {
+			// Update doctor profile
+			doc.DepartmentID = deptID
+			doc.Specialization = spec
+			return s.medRepo.UpdateDoctor(doc)
 		}
 	} else if user.Role == models.RolePatient {
 		_, err := s.medRepo.GetPatientByID(id)
@@ -97,7 +103,7 @@ func (s *userService) GetOrCreateUserByClaims(claims *utils.GoogleClaims) (*mode
 			GoogleID: claims.GoogleID,
 			Name:     claims.Name,
 			Picture:  claims.Picture,
-			Role:     models.RoleAdmin, // First user is admin
+			Role:     models.RolePatient,
 		}
 
 		if err := s.repo.CreateUser(newUser); err != nil {

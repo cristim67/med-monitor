@@ -41,6 +41,7 @@ func SetupRouter(enforcer *casbin.Enforcer, userService services.UserService, me
 		v1.DELETE("/departments/:id", medHandler.DeleteDepartment)
 
 		v1.GET("/doctors", medHandler.GetDoctors)
+		v1.GET("/doctors/:id/availability", medHandler.GetDoctorAvailability)
 		// ... potentially more later
 
 		// Patients

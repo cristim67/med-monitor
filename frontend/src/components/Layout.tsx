@@ -158,6 +158,12 @@ export default function Layout() {
         </nav>
 
         <div className="sidebar-footer">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', padding: '0 4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-dim)', letterSpacing: '0.05em' }}>Theme</span>
+            <button className="theme-toggle" onClick={toggleTheme} style={{ padding: '6px', borderRadius: '10px' }}>
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+          </div>
           <div className="user-profile">
             <div style={{ position: 'relative' }}>
               <img 

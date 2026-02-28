@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios';
-import { Shield, Mail, Search, Clock } from 'lucide-react';
+import { Shield, Mail, Search, Clock, X, Stethoscope, Building2 } from 'lucide-react';
 
 interface UserData {
   ID: number;
@@ -10,32 +10,62 @@ interface UserData {
   Picture: string;
 }
 
+interface Department {
+  ID: number;
+  Name: string;
+}
+
 export default function AdminUsers() {
   const [users, setUsers] = useState<UserData[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [updating, setUpdating] = useState<number | null>(null);
 
+  // Modal State for Doctor Assignment
+  const [showDoctorModal, setShowDoctorModal] = useState<UserData | null>(null);
+  const [selectedDept, setSelectedDept] = useState('');
+  const [specialization, setSpecialization] = useState('');
+
   useEffect(() => {
-    fetchUsers();
+    fetchData();
   }, []);
 
-  const fetchUsers = async () => {
+  const fetchData = async () => {
     try {
-      const res = await api.get('/api/v1/users');
-      setUsers(res.data || []);
+      const [usersRes, deptsRes] = await Promise.all([
+        api.get('/api/v1/users'),
+        api.get('/api/v1/departments')
+      ]);
+      setUsers(usersRes.data || []);
+      setDepartments(deptsRes.data || []);
     } catch (err) {
-      console.error('Failed to fetch users', err);
+      console.error('Failed to fetch data', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateUserRole = async (userId: number, newRole: string) => {
+  const handleRoleChange = (user: UserData, newRole: string) => {
+    if (newRole === 'doctor') {
+      setShowDoctorModal(user);
+      setSelectedDept('');
+      setSpecialization('');
+    } else {
+      updateUserRole(user.ID, newRole);
+    }
+  };
+
+  const updateUserRole = async (userId: number, newRole: string, deptId?: number, spec?: string) => {
     setUpdating(userId);
     try {
-      await api.put(`/api/v1/users/${userId}/role`, { role: newRole });
-      await fetchUsers(); // Refresh
+      await api.put(`/api/v1/users/${userId}/role`, { 
+        role: newRole,
+        department_id: deptId,
+        specialization: spec
+      });
+      await fetchData(); 
+      setShowDoctorModal(null);
     } catch (err) {
       console.error('Failed to update role', err);
       alert('Failed to update role. Check permissions.');
@@ -120,7 +150,7 @@ export default function AdminUsers() {
                         style={{ width: 'auto', padding: '4px 8px', fontSize: 'calc(13 / 16 * 1rem)' }}
                         value={user.Role}
                         disabled={updating === user.ID}
-                        onChange={(e) => updateUserRole(user.ID, e.target.value)}
+                        onChange={(e) => handleRoleChange(user, e.target.value)}
                       >
                         <option value="patient">Patient</option>
                         <option value="doctor">Doctor</option>
@@ -134,6 +164,70 @@ export default function AdminUsers() {
           </tbody>
         </table>
       </div>
+
+      {/* Doctor Settings Modal */}
+      {showDoctorModal && (
+        <div className="modal-overlay" onClick={() => setShowDoctorModal(null)}>
+          <div className="modal-content glass-panel" style={{ maxWidth: 'calc(500 / 16 * 1rem)' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 style={{ fontSize: 'calc(24 / 16 * 1rem)', fontWeight: 800 }}>Clinical specialization</h2>
+              <button className="theme-toggle" onClick={() => setShowDoctorModal(null)}><X size={20} /></button>
+            </div>
+            <div style={{ marginTop: '24px' }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px', background: 'var(--bg-secondary)', borderRadius: '16px', marginBottom: '24px' }}>
+                  <img src={showDoctorModal.Picture} alt="" style={{ width: '48px', height: '48px', borderRadius: '12px' }} />
+                  <div>
+                    <div style={{ fontWeight: 800 }}>{showDoctorModal.Name}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Assiging Doctor profile</div>
+                  </div>
+               </div>
+
+               <div className="form-group">
+                  <label className="form-label">Medical Department</label>
+                  <div style={{ position: 'relative' }}>
+                    <Building2 size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
+                    <select 
+                      className="form-control" 
+                      style={{ paddingLeft: '44px', borderRadius: '14px' }}
+                      value={selectedDept}
+                      onChange={(e) => setSelectedDept(e.target.value)}
+                    >
+                       <option value="">Select department...</option>
+                       {departments.map(d => <option key={d.ID} value={d.ID}>{d.Name}</option>)}
+                    </select>
+                  </div>
+               </div>
+
+               <div className="form-group" style={{ marginTop: '16px' }}>
+                  <label className="form-label">Clinical Specialization</label>
+                  <div style={{ position: 'relative' }}>
+                    <Stethoscope size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)' }} />
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      placeholder="e.g. Senior Cardiologist" 
+                      style={{ paddingLeft: '44px', borderRadius: '14px' }}
+                      value={specialization}
+                      onChange={(e) => setSpecialization(e.target.value)}
+                    />
+                  </div>
+               </div>
+
+               <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
+                  <button 
+                    disabled={updating !== null || !selectedDept}
+                    onClick={() => updateUserRole(showDoctorModal.ID, 'doctor', parseInt(selectedDept), specialization)}
+                    className="btn btn-primary" 
+                    style={{ flex: 1.5, borderRadius: '14px' }}
+                  >
+                    Confirm Doctor Role
+                  </button>
+                  <button className="btn" style={{ flex: 1, borderRadius: '14px' }} onClick={() => setShowDoctorModal(null)}>Cancel</button>
+               </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

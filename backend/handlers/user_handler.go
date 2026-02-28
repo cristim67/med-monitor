@@ -45,7 +45,9 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 func (h *UserHandler) UpdateUserRole(c *gin.Context) {
 	userIDStr := c.Param("id")
 	var body struct {
-		Role string `json:"role"`
+		Role           string `json:"role"`
+		DepartmentID   uint   `json:"department_id"`
+		Specialization string `json:"specialization"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -53,7 +55,7 @@ func (h *UserHandler) UpdateUserRole(c *gin.Context) {
 	}
 
 	idVal, _ := strconv.ParseUint(userIDStr, 10, 32)
-	if err := h.service.UpdateUserRole(uint(idVal), body.Role); err != nil {
+	if err := h.service.UpdateUserRole(uint(idVal), body.Role, body.DepartmentID, body.Specialization); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

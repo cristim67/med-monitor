@@ -12,6 +12,8 @@ const (
 	RoleAdmin   UserRole = "admin"
 	RoleDoctor  UserRole = "doctor"
 	RolePatient UserRole = "patient"
+
+	RFC3339NoNano = "2006-01-02T15:04:05Z07:00"
 )
 
 type AppointmentStatus string

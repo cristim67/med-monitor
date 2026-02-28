@@ -63,12 +63,25 @@ func main() {
 		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/appointments/:id/cancel", "(PUT)")
 		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/prescriptions", "(GET)")
 		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/doctors", "(GET)")
+		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/doctors/:id/availability", "(GET)")
 		enforcer.AddPolicy(string(models.RolePatient), "/api/v1/departments", "(GET)")
+
+		enforcer.AddPolicy(string(models.RoleDoctor), "/api/v1/doctors/:id/availability", "(GET)")
 
 		enforcer.SavePolicy()
 	}
 
-	// 5. Setup Router
+	// 5. Seed Departments if empty
+	depts, _ := medicalRepo.GetAllDepartments()
+	if len(depts) == 0 {
+		log.Println("Seeding default departments...")
+		medicalRepo.CreateDepartment(&models.Department{Name: "General Medicine", Description: "Primary care unit"})
+		medicalRepo.CreateDepartment(&models.Department{Name: "Cardiology", Description: "Heart & cardiovascular care"})
+		medicalRepo.CreateDepartment(&models.Department{Name: "Neurology", Description: "Brain & nervous system specialized unit"})
+		medicalRepo.CreateDepartment(&models.Department{Name: "Pediatrics", Description: "Child healthcare department"})
+	}
+
+	// 6. Setup Router
 	r := routes.SetupRouter(enforcer, userService, medicalService)
 
 	// 6. Start server

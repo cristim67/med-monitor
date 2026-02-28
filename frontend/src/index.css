@@ -35,23 +35,44 @@
     radial-gradient(circle at 0% 0%, hsla(250, 85%, 65%, 0.1), transparent 40%),
     radial-gradient(circle at 100% 100%, hsla(180, 70%, 50%, 0.05), transparent 40%),
     radial-gradient(circle at 50% 50%, hsla(230, 25%, 5%, 1), hsla(230, 25%, 3%, 1));
+
+  --banner-gradient: linear-gradient(135deg, var(--primary), hsl(280, 80%, 60%));
+  --card-gradient: linear-gradient(135deg, var(--card-bg), hsla(230, 25%, 18%, 0.8));
+  --shadow-color: hsla(0, 0%, 0%, 0.3);
 }
 
 [data-theme='light'] {
-  --bg-color: hsl(220, 30%, 97%);
+  --bg-color: hsl(220, 30%, 98%);
   --bg-secondary: hsl(0, 0%, 100%);
   --bg-surface: hsl(220, 30%, 94%);
 
-  --text-main: hsl(230, 25%, 10%);
-  --text-muted: hsl(230, 15%, 40%);
-  --text-dim: hsl(230, 10%, 60%);
+  --text-main: hsl(230, 25%, 15%);
+  --text-muted: hsl(230, 20%, 45%);
+  --text-dim: hsl(230, 15%, 65%);
 
-  --card-bg: hsla(0, 0%, 100%, 0.8);
-  --card-border: hsla(230, 25%, 10%, 0.05);
-  --sidebar-bg: hsla(0, 0%, 100%, 0.9);
+  --card-bg: hsla(0, 0%, 100%, 0.85);
+  --card-border: hsla(230, 25%, 10%, 0.08);
+  --card-hover-border: hsla(250, 85%, 65%, 0.4);
 
-  --primary: hsl(250, 85%, 50%);
-  --bg-gradient: none;
+  --sidebar-bg: hsla(0, 0%, 100%, 0.95);
+
+  --primary: hsl(250, 85%, 60%);
+  --primary-glow: hsla(250, 85%, 60%, 0.2);
+  --primary-hover: hsl(250, 85%, 65%);
+
+  --accent: hsl(190, 80%, 45%);
+  --accent-glow: hsla(190, 80%, 45%, 0.2);
+
+  --bg-gradient:
+    radial-gradient(circle at 0% 0%, hsla(250, 85%, 65%, 0.04), transparent 50%),
+    radial-gradient(circle at 100% 100%, hsla(190, 80%, 45%, 0.03), transparent 50%),
+    radial-gradient(circle at 50% 50%, hsla(220, 30%, 98%, 1), hsla(220, 30%, 96%, 1));
+
+  --banner-gradient: linear-gradient(135deg, var(--primary), hsl(220, 80%, 50%));
+  --card-gradient: linear-gradient(135deg, var(--card-bg), hsla(230, 25%, 90%, 0.5));
+  --shadow-color: hsla(230, 25%, 10%, 0.08);
+
+  --glass-blur: 0.75rem;
 }
 
 * {
@@ -89,7 +110,7 @@ h4,
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--card-border);
   border-radius: 1.5rem;
-  box-shadow: 0 0.5rem 2rem 0 hsla(0, 0%, 0%, 0.2);
+  box-shadow: 0 0.5rem 2rem 0 var(--shadow-color);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -152,6 +173,8 @@ h4,
   padding: 2.5rem;
   text-align: center;
   animation: fadeUp 0.5s ease;
+  position: relative;
+  z-index: 10;
 }
 
 .auth-logo {
@@ -399,7 +422,7 @@ h4,
   flex-direction: column;
   gap: 1.25rem;
   cursor: pointer;
-  background: linear-gradient(135deg, var(--card-bg), hsla(230, 25%, 18%, 0.8));
+  background: var(--card-gradient);
 }
 
 .action-card .icon-wrapper {
@@ -469,6 +492,12 @@ h4,
   background: hsla(0, 85%, 60%, 0.1);
   color: var(--danger);
   border: 1px solid hsla(0, 85%, 60%, 0.2);
+}
+
+.badge-dim {
+  background: hsla(0, 0%, 50%, 0.1);
+  color: var(--text-muted);
+  border: 1px solid var(--card-border);
 }
 
 /* Data Visualization Placeholders */
@@ -589,7 +618,7 @@ h4,
 .role-banner {
   padding: 2.5rem;
   border-radius: 2rem;
-  background: linear-gradient(135deg, var(--primary), hsl(280, 80%, 60%));
+  background: var(--banner-gradient);
   color: white;
   margin-bottom: 2.5rem;
   position: relative;
@@ -608,6 +637,7 @@ h4,
   opacity: 0.1;
   border-radius: 50%;
   filter: blur(2.5rem);
+  pointer-events: none;
 }
 
 .role-banner h1 {

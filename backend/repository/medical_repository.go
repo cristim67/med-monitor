@@ -17,6 +17,7 @@ type MedicalRepository interface {
 	GetAllDoctors() ([]models.Doctor, error)
 	GetDoctorByID(id uint) (*models.Doctor, error)
 	CreateDoctor(doctor *models.Doctor) error
+	UpdateDoctor(doctor *models.Doctor) error
 
 	// Patients
 	GetAllPatients() ([]models.Patient, error)
@@ -87,6 +88,13 @@ func (r *medicalRepository) GetDoctorByID(id uint) (*models.Doctor, error) {
 
 func (r *medicalRepository) CreateDoctor(doctor *models.Doctor) error {
 	return r.db.Create(doctor).Error
+}
+
+func (r *medicalRepository) UpdateDoctor(doctor *models.Doctor) error {
+	return r.db.Model(doctor).Updates(map[string]interface{}{
+		"department_id":  doctor.DepartmentID,
+		"specialization": doctor.Specialization,
+	}).Error
 }
 
 func (r *medicalRepository) GetAllPatients() ([]models.Patient, error) {

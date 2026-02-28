@@ -41,11 +41,14 @@ func AuthMiddleware(e *casbin.Enforcer, userService services.UserService) gin.Ha
 		obj := c.Request.URL.Path
 		act := c.Request.Method
 		roleStr := string(user.Role)
-
 		ok, err := e.Enforce(roleStr, obj, act)
 		if err != nil {
 			log.Printf("RBAC Enforce error for user %d (role %s): %v", user.ID, user.Role, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error occurred when authorizing user"})
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Error occurred when authorizing user",
+				"details": err.Error(),
+				"role":    string(user.Role),
+			})
 			c.Abort()
 			return
 		}
@@ -53,7 +56,9 @@ func AuthMiddleware(e *casbin.Enforcer, userService services.UserService) gin.Ha
 		if ok {
 			c.Next()
 		} else {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden: role '" + string(user.Role) + "' does not have access"})
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "Forbidden: role '" + string(user.Role) + "' does not have access to " + obj + " [" + act + "]",
+			})
 			c.Abort()
 		}
 	}
